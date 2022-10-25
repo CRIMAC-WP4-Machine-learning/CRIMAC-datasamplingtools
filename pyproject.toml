@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "echo-dataset"
+version = "0.1.0"
+description = ""
+authors = ["Andrei Margert <andrei.margert@wur.nl>"]
+readme = "README.md"
+packages = [{include = "echo_dataset"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.10"
+datatable = "^1.0.0"
+PyYAML = "^6.0"
+schema = "^0.7.5"
+xarray = "^2022.9.0"
+zarr = "^2.13.2"
+dask = "^2022.9.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

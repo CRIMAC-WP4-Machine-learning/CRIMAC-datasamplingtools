@@ -16,6 +16,7 @@
 .LSOverride
 
 # Python
+**/__pycache__
 __pycache__
 
 # Pyenv
@@ -30,8 +31,3 @@ outputs
 tmp
 logs
 viz*
-
-# tmp | dev
-poetry.lock
-pyproject.toml
-meat_rgb

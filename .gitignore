@@ -1,0 +1,37 @@
+# PyCharm
+.idea
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__
+
+# Pyenv
+.python-version
+
+# Poetry
+.venv
+
+# Project
+data
+outputs
+tmp
+logs
+viz*
+
+# tmp | dev
+poetry.lock
+pyproject.toml
+meat_rgb

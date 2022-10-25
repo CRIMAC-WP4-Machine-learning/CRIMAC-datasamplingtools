@@ -1,0 +1,18 @@
+# Select various categories to filter a dataset.
+# All the filters will be combined with an AND operator.
+# Use "all" string value to use all available data for a given filter.
+# Pay attention to the input types; in "theory" it should work with all types.
+# Yet it is highly recommended to use the default input type for each filter.
+# See type annotation for each filter below.
+
+# # # Filters # # #
+filters:
+
+  # Type: list[int, ...]
+  # Notes: only selects a survey, if it contains all the frequencies mentioned;
+  #   "all" keyword doesn't work here, one must be explicit about frequencies.
+  frequencies: [38000, 120000]
+
+  # Type: ...
+  # Notes: ...
+  name: "all"

@@ -28,7 +28,7 @@
 #
 #
 # conf = CruiseConfig(
-#     path="../data/2018/test_survey_1/ACOUSTIC/GRIDDED",
+#     path="../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
 #     name="test_cruise",
 #     year=2018,
 #     require_annotations=True
@@ -37,8 +37,8 @@
 # width = 256
 # height = 256
 # x_min, y_min = 0, 0
-# x_max = c.survey.sizes["ping_time"] - width
-# y_max = c.survey.sizes["range"] - height
+# x_max = c.echogram.sizes["ping_time"] - width
+# y_max = c.echogram.sizes["range"] - height
 # x1 = random.randint(x_min, x_max)
 # y1 = random.randint(y_min, y_max)
 # x2 = x1 + width
@@ -48,11 +48,26 @@
 # print(window)
 
 
-from echo_dataset.core.data_summary import DataSummary
+# from echo_dataset.core.data_summary import DataSummary
+#
+#
+# s = DataSummary(
+#     data_root="../data",
+#     data_format="zarr"
+# )
+# print()
 
 
-s = DataSummary(
-    data_root="../data",
-    data_format="zarr"
-)
-print()
+from echo_dataset.core import Cruise, EchoDataset
+
+
+paths = [
+    "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
+    "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
+    "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED"
+]
+cruises = list()
+for p in paths:
+    cruises.append(Cruise.from_path(p, True))
+
+ds = EchoDataset(cruises, None)

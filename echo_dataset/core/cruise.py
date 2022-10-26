@@ -6,6 +6,7 @@ import xarray as xr
 from dataclasses import dataclass, MISSING
 from typing import Union, Optional
 from pathlib import Path
+import warnings
 import os
 
 
@@ -13,8 +14,28 @@ __all__ = ["ICruise", "CruiseConfig", "Cruise"]
 
 
 class ICruise:
+    _echogram_key: str
+    _annotations_key: str
+    _bottom_key: str
+
     @property
-    def info(self) -> str:
+    def info(self) -> dict[str, any]:
+        raise NotImplementedError
+
+    @property
+    def path(self) -> Path:
+        raise NotImplementedError
+
+    @property
+    def echogram_key(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def annotations_key(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def bottom_key(self) -> str:
         raise NotImplementedError
 
     @property
@@ -30,7 +51,7 @@ class ICruise:
         raise NotImplementedError
 
     @property
-    def categories(self) -> int:
+    def categories(self) -> list[int, ...]:
         raise NotImplementedError
 
     @property
@@ -42,18 +63,14 @@ class ICruise:
         raise NotImplementedError
 
     @property
-    def pulse_length(self) -> float:
-        raise NotImplementedError
-
-    @property
     def frequencies(self) -> list[int, ...]:
         raise NotImplementedError
 
     @property
-    def num_of_pings(self) -> int:
+    def num_pings(self) -> int:
         raise NotImplementedError
 
-    def crop(self, x1: int, y1: int, x2: int, y2: int) -> xr.Dataset:
+    def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
         """
                     Ping time
         (x1, y1)    ---->
@@ -78,48 +95,67 @@ class ICruise:
 class CruiseConfig:
     path: Path = MISSING
     settings: dict[str, any]
-    name: str = ""
-    year: int = -1
-    require_annotations: bool = True
-    require_bottom: bool = False
+    name: str
+    year: int
+    require_annotations: bool
+    require_bottom: bool
 
     def __init__(
             self,
             path: Union[str, Path],
             name: Optional[str] = None,
             year: Optional[int] = None,
-            require_annotations: Optional[bool] = None,
-            require_bottom: Optional[bool] = None,
+            require_annotations: bool = False,
+            require_bottom: bool = False,
             settings: Optional[dict[str, any]] = None
     ) -> None:
         self.path = Path(path)
-        self.name = name if name is not None else self.name
-        self.year = year if isinstance(year, int) else self.year
-        # if not isinstance(year, int):
-        #     raise ValueError("Year must be int")
-        # self.year = year
+        self.name = name
+        self.year = year
+        self.require_annotations = require_annotations
+        self.require_bottom = require_bottom
         if settings is not None:
             if config.is_valid(settings):
                 self.settings = settings
         else:
             self.settings = CONFIG
-        if require_annotations is not None:
-            self.require_annotations = require_annotations
-        if require_bottom is not None:
-            self.require_bottom = require_bottom
 
 
 class Cruise(ICruise):
     def __init__(self, conf: CruiseConfig) -> None:
+        self._echogram_key = "echogram"
+        self._annotations_key = "annotations"
+        self._bottom_key = "bottom"
         self._conf = conf
         data_filename, annotation_filename, bottom_filename = self._scan_path()
-        self._data = self._read_data(data_filename, True)
-        self._annotations = self._read_data(annotation_filename, self._conf.require_annotations)
-        self._bottom = self._read_data(bottom_filename, self._conf.require_bottom)
+        self._data = self._read_data(
+            filename=data_filename,
+            required=True,
+            data_name=self._echogram_key
+        )
+        self._annotations = self._read_data(
+            filename=annotation_filename,
+            required=self._conf.require_annotations,
+            data_name=self._annotations_key
+        )
+        self._bottom = self._read_data(
+            filename=bottom_filename,
+            required=self._conf.require_bottom,
+            data_name=self._bottom_key
+        )
 
     @classmethod
-    def from_path(cls, path: Union[Path, str]) -> "Cruise":
-        conf = CruiseConfig(path)
+    def from_path(
+            cls,
+            path: Union[Path, str],
+            require_annotations: bool = False,
+            require_bottom: bool = False
+    ) -> "Cruise":
+        conf = CruiseConfig(
+            path=path,
+            require_annotations=require_annotations,
+            require_bottom=require_bottom
+        )
         return cls(conf)
 
     def _scan_path(self) -> list[str, str, str]:
@@ -137,7 +173,7 @@ class Cruise(ICruise):
                 out.append("")
         return out
 
-    def _read_data(self, filename: str, required: bool) -> xr.Dataset:
+    def _read_data(self, filename: str, required: bool, data_name: str) -> xr.Dataset:
         try:
             return xr.open_zarr(
                 store=self._conf.path / filename,
@@ -145,8 +181,11 @@ class Cruise(ICruise):
             )
         except FileNotFoundError:
             if required:
-                raise Exception(f"Required file not found in {self._conf.path}")
+                raise Exception(f"Required file not found in {self.path}")
             else:
+                warnings.warn(
+                    f"Optional data ({data_name}) is not found for {self.path} cruise"
+                )
                 return xr.Dataset()
 
     @staticmethod
@@ -166,6 +205,25 @@ class Cruise(ICruise):
         return res
 
     @property
+    def echogram_key(self) -> str:
+        return self._echogram_key
+
+    @property
+    def annotations_key(self) -> str:
+        return self._annotations_key
+
+    @property
+    def bottom_key(self) -> str:
+        return self._bottom_key
+
+    @property
+    def info(self) -> dict[str, any]:
+        res = dict()
+        res["name"] = self._conf.name
+        res["year"] = self._conf.year
+        return res
+
+    @property
     def path(self) -> Path:
         return self._conf.path
 
@@ -182,11 +240,11 @@ class Cruise(ICruise):
         return self._annotations
 
     @property
-    def categories(self) -> int:
+    def categories(self) -> list[int, ...]:
         if self.annotations_available:
-            return self._annotations.category.compute().echogram.tolist()
+            return self._annotations.category.compute().to_numpy().tolist()
         else:
-            return -1
+            return []
 
     @property
     def bottom_available(self) -> bool:
@@ -197,13 +255,6 @@ class Cruise(ICruise):
         return self._bottom
 
     @property
-    def pulse_length(self) -> float:
-        try:
-            return self._data.pulse_length.compute().echogram[0]
-        except AttributeError:
-            raise KeyError("No `pulse_length` coordinate is found")
-
-    @property
     def frequencies(self) -> list[int, ...]:
         try:
             return self._data.frequency.compute().astype(int).to_numpy().tolist()
@@ -211,7 +262,7 @@ class Cruise(ICruise):
             raise KeyError("No `frequency` coordinate is found")
 
     @property
-    def num_of_pings(self) -> int:
+    def num_pings(self) -> int:
         try:
             return len(self._data.ping_time)
         except AttributeError:
@@ -223,10 +274,10 @@ class Cruise(ICruise):
             y1: int,
             x2: int,
             y2: int
-    ) -> list[xr.Dataset, xr.Dataset, xr.Dataset]:
-        res = list()
+    ) -> dict[str, xr.Dataset]:
+        res = dict()
         box = [x1, y1, x2, y2]
-        res.append(self._crop_data(self._data, box))
-        res.append(self._crop_data(self._annotations, box))
-        res.append(self._crop_data(self._bottom, box))
+        res[self._echogram_key] = self._crop_data(self._data, box)
+        res[self._annotations_key] = self._crop_data(self._annotations, box)
+        res[self._bottom_key] = self._crop_data(self._bottom, box)
         return res

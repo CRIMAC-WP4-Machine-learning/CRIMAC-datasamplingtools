@@ -1,7 +1,10 @@
-from ..utils import config, generate_data_filename_patterns
+from ..utils import generate_data_filename_patterns
+from ..utils.module_config import is_valid
 from .. import CONFIG
 
 import xarray as xr
+import numpy as np
+import cv2 as cv
 
 from dataclasses import dataclass, MISSING
 from typing import Union, Optional
@@ -17,6 +20,7 @@ class ICruise:
     _echogram_key: str
     _annotations_key: str
     _bottom_key: str
+    _school_boxes: dict[int, list[list[int, int, int, int], ...]]
 
     @property
     def info(self) -> dict[str, any]:
@@ -70,6 +74,14 @@ class ICruise:
     def num_pings(self) -> int:
         raise NotImplementedError
 
+    @property
+    def num_ranges(self) -> int:
+        raise NotImplementedError
+
+    @property
+    def school_boxes(self) -> dict[int, list[list[int, int, int, int], ...]]:
+        return self._school_boxes
+
     def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
         """
                     Ping time
@@ -115,7 +127,7 @@ class CruiseConfig:
         self.require_annotations = require_annotations
         self.require_bottom = require_bottom
         if settings is not None:
-            if config.is_valid(settings):
+            if is_valid(settings):
                 self.settings = settings
         else:
             self.settings = CONFIG
@@ -143,6 +155,7 @@ class Cruise(ICruise):
             required=self._conf.require_bottom,
             data_name=self._bottom_key
         )
+        self._school_boxes = self._find_school_boxes()
 
     @classmethod
     def from_path(
@@ -187,6 +200,22 @@ class Cruise(ICruise):
                     f"Optional data ({data_name}) is not found for {self.path} cruise"
                 )
                 return xr.Dataset()
+
+    def _find_school_boxes(self) -> dict[int, list[list[int, int, int, int], ...]]:
+        schools = dict()
+        for c in self._annotations.category:
+            if c == -1:
+                continue
+            c = int(c)
+            schools[c] = list()
+            mask = self._annotations.sel({"category": c}).annotation.compute().data.T
+            contours, _ = cv.findContours(
+                mask.astype(np.uint8), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE
+            )
+            for cont in contours:
+                x, y, w, h = cv.boundingRect(cont)
+                schools[c].append([x, y, x + w, y + h])
+        return schools
 
     @staticmethod
     def _crop_data(
@@ -267,6 +296,13 @@ class Cruise(ICruise):
             return len(self._data.ping_time)
         except AttributeError:
             raise KeyError("No `ping_time` coordinate is found")
+
+    @property
+    def num_ranges(self) -> int:
+        try:
+            return len(self._data.range)
+        except AttributeError:
+            raise KeyError("No `range` coordinate is found")
 
     def crop(
             self,

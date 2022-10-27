@@ -58,16 +58,47 @@
 # print()
 
 
-from echo_dataset.core import Cruise, EchoDataset
+from echo_dataset.core import Cruise, EchoDataset, CruiseConfig
 
 
+# paths = [
+#     "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
+#     "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
+#     "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED"
+# ]
 paths = [
-    "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
-    "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
-    "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED"
+    "../data/sandeel_survey/2018/test_survey_0/ACOUSTIC/GRIDDED",
+    "../data/sandeel_survey/2018/test_survey_1/ACOUSTIC/GRIDDED",
+    "../data/sandeel_survey/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
 ]
-cruises = list()
-for p in paths:
-    cruises.append(Cruise.from_path(p, True))
+names = [
+    "cruise 1",
+    None,
+    "cruise 3"
+]
+years = [
+    2019,
+    2018,
+    None
+]
 
-ds = EchoDataset(cruises, None)
+cruises = list()
+for i in range(len(paths)):
+    cfg = CruiseConfig(
+        path=paths[i],
+        name=names[i],
+        year=years[i],
+        require_annotations=True,
+        require_bottom=False,
+        settings=None
+    )
+    cruises.append(Cruise(cfg))
+
+ds = EchoDataset(
+    cruises=cruises,
+    sampler=None,
+    pseudo_length=1,
+    cfg="./config.yaml"
+)
+
+print(ds)

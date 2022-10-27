@@ -14,7 +14,11 @@ schema = "^0.7.5"
 xarray = "^2022.9.0"
 zarr = "^2.13.2"
 dask = "^2022.9.1"
+opencv-python = "^4.6.0.66"
 
+
+[tool.poetry.group.dev.dependencies]
+matplotlib = "^3.6.1"
 
 [build-system]
 requires = ["poetry-core"]

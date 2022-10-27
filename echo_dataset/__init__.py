@@ -1,4 +1,4 @@
-from .utils.config import is_valid
+from .utils.module_config import is_valid
 
 import yaml
 

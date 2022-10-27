@@ -1,2 +1,1 @@
-from .scan import *
-from .parse import *
+from .patterns import *

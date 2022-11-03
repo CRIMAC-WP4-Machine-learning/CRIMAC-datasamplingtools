@@ -58,19 +58,19 @@
 # print()
 
 
-from echo_dataset.core import Cruise, EchoDataset, CruiseConfig
+from echo_dataset.core import Cruise, EchoDataset, CruiseConfig, RandomSchoolSampler
 
 
-# paths = [
-#     "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
-#     "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
-#     "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED"
-# ]
 paths = [
-    "../data/sandeel_survey/2018/test_survey_0/ACOUSTIC/GRIDDED",
-    "../data/sandeel_survey/2018/test_survey_1/ACOUSTIC/GRIDDED",
-    "../data/sandeel_survey/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
+    "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
+    "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
+    "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED"
 ]
+# paths = [
+#     "../data/sandeel_survey/2018/test_survey_0/ACOUSTIC/GRIDDED",
+#     "../data/sandeel_survey/2018/test_survey_1/ACOUSTIC/GRIDDED",
+#     "../data/sandeel_survey/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
+# ]
 names = [
     "cruise 1",
     None,
@@ -94,11 +94,25 @@ for i in range(len(paths)):
     )
     cruises.append(Cruise(cfg))
 
+sampler = RandomSchoolSampler(window_size=(256, 256))
+
 ds = EchoDataset(
     cruises=cruises,
-    sampler=None,
+    sampler=sampler,
     pseudo_length=1,
     cfg="./config.yaml"
 )
-
 print(ds)
+
+a = ds[0]
+b = ds[1]
+
+for k, v in a.items():
+    print(k)
+    print(v)
+    print()
+
+for k, v in b.items():
+    print(k)
+    print(v)
+    print()

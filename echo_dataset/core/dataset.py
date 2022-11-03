@@ -3,26 +3,53 @@ from .sampler import ISampler
 from .cruise import ICruise
 
 import datatable as dt
+import xarray as xr
 import yaml
 
-from typing import Sequence, Optional
 from collections import defaultdict
+from typing import Sequence
 
 
 class IEchoDataset:
+    _cruises: list[ICruise, ...]
+    _table: dt.Frame
+    _summary: dt.Frame
     _ping_range_map: dict[int, int]
+    _total_num_pings: int
+
+    @property
+    def table(self) -> dt.Frame:
+        return self._table
 
     @property
     def summary(self) -> dt.Frame:
-        raise NotImplementedError
+        return self._summary
 
     @property
     def num_cruises(self) -> int:
-        raise NotImplementedError
+        return len(self._cruises)
 
     @property
     def ping_range_map(self) -> dict[int, int]:
         return self._ping_range_map
+
+    @property
+    def total_num_pings(self) -> int:
+        return self._total_num_pings
+
+    def schools(
+            self,
+            cruise_idx: int,
+            fish_category: int
+    ) -> list[list[int, int, int, int], ...]:
+        raise NotImplementedError
+
+    def crop(
+            self,
+            cruise_idx: int,
+            box: list[int, int, int, int]
+    ) -> dict[str, xr.Dataset]:
+        raise NotImplementedError
 
 
 class EchoDataset(IEchoDataset):
@@ -34,10 +61,11 @@ class EchoDataset(IEchoDataset):
             pseudo_length: int = 1
     ) -> None:
         super().__init__()
-        self._cruises = cruises
+        self._cruises = list(cruises)
         self._sampler = sampler
         self._pseudo_length = pseudo_length
         self._cfg = self._load_cfg(cfg)
+        self._sampler.init(self._cfg["filters"]["categories"])
         self._filter_conf = {
             "name": self._cfg["filters"]["names"],
             "year": self._cfg["filters"]["years"],
@@ -135,14 +163,16 @@ class EchoDataset(IEchoDataset):
             previous_ping += num_pings
         return ping_range_map, previous_ping
 
-    @property
-    def table(self) -> dt.Frame:
-        return self._table
+    def schools(
+            self,
+            cruise_idx: int,
+            fish_category: int
+    ) -> list[list[int, int, int, int], ...]:
+        return self._cruises[cruise_idx].school_boxes[fish_category]
 
-    @property
-    def summary(self) -> dt.Frame:
-        return self._summary
-
-    @property
-    def num_cruises(self) -> int:
-        return len(self._cruises)
+    def crop(
+            self,
+            cruise_idx: int,
+            box: list[int, int, int, int]
+    ) -> dict[str, xr.Dataset]:
+        return self._cruises[cruise_idx].crop(*box)

@@ -31,3 +31,4 @@ outputs
 tmp
 logs
 viz*
+dist

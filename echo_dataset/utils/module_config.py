@@ -8,7 +8,7 @@ schema = Schema(
     {
         Optional("survey_suffix"): str,
         Optional("bottom_suffix"): str,
-        Optional("labels_suffix"): str
+        Optional("labels_suffix"): str,
     }
 )
 

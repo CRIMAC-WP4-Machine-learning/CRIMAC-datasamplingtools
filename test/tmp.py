@@ -58,29 +58,28 @@
 # print()
 
 
-from echo_dataset.core import Cruise, EchoDataset, CruiseConfig, RandomSchoolSampler, CompoundSampler, RandomBackgroundSampler
+from echo_dataset.core import (
+    Cruise,
+    EchoDataset,
+    CruiseConfig,
+    RandomSchoolSampler,
+    CompoundSampler,
+    RandomBackgroundSampler,
+)
 
 
 paths = [
     "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
     "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
-    "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED"
+    "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED",
 ]
 # paths = [
 #     "../data/sandeel_survey/2018/test_survey_0/ACOUSTIC/GRIDDED",
 #     "../data/sandeel_survey/2018/test_survey_1/ACOUSTIC/GRIDDED",
 #     "../data/sandeel_survey/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
 # ]
-names = [
-    "cruise 1",
-    None,
-    "cruise 3"
-]
-years = [
-    2019,
-    2018,
-    None
-]
+names = ["cruise 1", None, "cruise 3"]
+years = [2019, 2018, None]
 
 cruises = list()
 for i in range(len(paths)):
@@ -90,7 +89,7 @@ for i in range(len(paths)):
         year=years[i],
         require_annotations=True,
         require_bottom=False,
-        settings=None
+        settings=None,
     )
     cruises.append(Cruise(cfg))
 
@@ -98,15 +97,12 @@ window_size = (256, 256)
 sampler = CompoundSampler(
     samplers=[
         RandomSchoolSampler(window_size=window_size),
-        RandomBackgroundSampler(window_size=window_size)
+        RandomBackgroundSampler(window_size=window_size),
     ]
 )
 
 ds = EchoDataset(
-    cruises=cruises,
-    sampler=sampler,
-    pseudo_length=1,
-    cfg="./config.yaml"
+    cruises=cruises, sampler=sampler, pseudo_length=1, cfg="./config.yaml"
 )
 
 for _ in range(1000):

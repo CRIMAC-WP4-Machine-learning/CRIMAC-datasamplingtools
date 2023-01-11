@@ -81,7 +81,10 @@ class EchoDataset(IEchoDataset):
         )
         self._summary = self._summarise(cruises)
         self._valid_ids = self._filter()
-        self._ping_range_map, self._total_num_pings = self._assemble_ping_range_map()
+        (
+            self._ping_range_map,
+            self._total_num_pings,
+        ) = self._assemble_ping_range_map()
 
     def __len__(self) -> int:
         return self._pseudo_length

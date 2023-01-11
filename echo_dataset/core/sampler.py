@@ -90,7 +90,9 @@ class RandomBackgroundSampler(ISampler):
                 assert max_ping is not None
                 if (x + self._window_size[0]) < max_ping:
                     break
-            y = random.randint(0, ds.ping_range_map[max_ping] - self.window_size[1] - 1)
+            y = random.randint(
+                0, ds.ping_range_map[max_ping] - self.window_size[1] - 1
+            )
             window = ds.crop(
                 cruise_idx=i,
                 box=[

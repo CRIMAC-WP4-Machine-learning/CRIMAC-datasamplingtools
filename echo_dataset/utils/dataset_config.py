@@ -8,16 +8,22 @@ __all__ = ["is_valid"]
 schema = Schema(
     {
         "filters": {
-            "frequencies":
-                lambda x: isinstance(x, list) and all(isinstance(v, int) for v in x) or x is None,
-            "categories":
-                lambda x: isinstance(x, list) and all(isinstance(v, int) for v in x) or x is None,
-            "names":
-                lambda x: (isinstance(x, list) and all(isinstance(v, str) for v in x)) or x is None,
-            "years":
-                lambda x: (isinstance(x, list) and all(isinstance(v, int) for v in x)) or x is None,
+            "frequencies": lambda x: isinstance(x, list)
+            and all(isinstance(v, int) for v in x)
+            or x is None,
+            "categories": lambda x: isinstance(x, list)
+            and all(isinstance(v, int) for v in x)
+            or x is None,
+            "names": lambda x: (
+                isinstance(x, list) and all(isinstance(v, str) for v in x)
+            )
+            or x is None,
+            "years": lambda x: (
+                isinstance(x, list) and all(isinstance(v, int) for v in x)
+            )
+            or x is None,
             "with_annotations_only": bool,
-            "with_bottom_only": bool
+            "with_bottom_only": bool,
         }
     }
 )

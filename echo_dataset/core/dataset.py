@@ -155,12 +155,12 @@ class EchoDataset(IEchoDataset):
         return table["id"].to_numpy().flatten().tolist()
 
     def _assemble_ping_range_map(self) -> tuple[dict[int, int], int]:
-        ping_range_map = dict()
+        ping_range_map = OrderedDict()
         previous_ping = 0
         for i in self._valid_ids:
             num_pings = previous_ping + self._cruises[i].num_pings
             ping_range_map[num_pings] = self._cruises[i].num_ranges
-            previous_ping += num_pings
+            previous_ping = num_pings
         return ping_range_map, previous_ping
 
     def schools(

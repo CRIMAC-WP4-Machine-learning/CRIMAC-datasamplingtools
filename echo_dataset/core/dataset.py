@@ -54,11 +54,11 @@ class IEchoDataset:
 
 class EchoDataset(IEchoDataset):
     def __init__(
-            self,
-            cruises: Sequence[ICruise],
-            sampler: ISampler,
-            cfg: str,
-            pseudo_length: int = 1
+        self,
+        cruises: Sequence[ICruise],
+        sampler: Union[ISampler, ICompoundSampler],
+        cfg: str,
+        pseudo_length: int = 1,
     ) -> None:
         super().__init__()
         self._cruises = list(cruises)

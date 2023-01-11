@@ -42,9 +42,9 @@ class RandomSchoolSampler(ISampler):
             box_idx = random.randint(1, len(school_boxes))
             box = school_boxes[box_idx - 1]
             x_min = box[0]
-            x_max = box[2] - self.window_size[0]
+            x_max = box[2] - self.window_size[0] - 1
             y_min = box[1]
-            y_max = box[3] - self.window_size[1]
+            y_max = box[3] - self.window_size[1] - 1
             if x_max < x_min or y_max < y_min:
                 continue
             x = random.randint(x_min, x_max)

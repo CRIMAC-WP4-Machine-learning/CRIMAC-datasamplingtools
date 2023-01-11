@@ -1,3 +1,4 @@
+from .compound_sampler import ICompoundSampler
 from ..utils.dataset_config import is_valid
 from .sampler import ISampler
 from .cruise import ICruise
@@ -6,8 +7,8 @@ import datatable as dt
 import xarray as xr
 import yaml
 
-from collections import defaultdict
-from typing import Sequence
+from collections import defaultdict, OrderedDict
+from typing import Sequence, Union
 
 
 class IEchoDataset:
@@ -38,16 +39,12 @@ class IEchoDataset:
         return self._total_num_pings
 
     def schools(
-            self,
-            cruise_idx: int,
-            fish_category: int
+        self, cruise_idx: int, fish_category: int
     ) -> list[list[int, int, int, int], ...]:
         raise NotImplementedError
 
     def crop(
-            self,
-            cruise_idx: int,
-            box: list[int, int, int, int]
+        self, cruise_idx: int, box: list[int, int, int, int]
     ) -> dict[str, xr.Dataset]:
         raise NotImplementedError
 
@@ -71,13 +68,15 @@ class EchoDataset(IEchoDataset):
             "year": self._cfg["filters"]["years"],
             "categories": list(set(self._cfg["filters"]["categories"])),
             "frequencies": list(set(self._cfg["filters"]["frequencies"])),
-            "with_annotations_only": self._cfg["filters"]["with_annotations_only"],
-            "with_bottom_only": self._cfg["filters"]["with_bottom_only"]
+            "with_annotations_only": self._cfg["filters"][
+                "with_annotations_only"
+            ],
+            "with_bottom_only": self._cfg["filters"]["with_bottom_only"],
         }
         self._table = dt.Frame(
             {
                 "id": [*range(len(cruises))],
-                "path": [str(c.path) for c in cruises]
+                "path": [str(c.path) for c in cruises],
             }
         )
         self._summary = self._summarise(cruises)
@@ -116,13 +115,17 @@ class EchoDataset(IEchoDataset):
             summary["categories"].append(c.categories)
             summary["frequencies"].append(c.frequencies)
         return dt.Frame(
-            summary,
-            types=[int, str, int, bool, bool, int, object, object]
+            summary, types=[int, str, int, bool, bool, int, object, object]
         )
 
     def _filter(self) -> list[int, ...]:
         table = self._summary
-        special_filters = ["with_annotations_only", "with_bottom_only", "categories", "frequencies"]
+        special_filters = [
+            "with_annotations_only",
+            "with_bottom_only",
+            "categories",
+            "frequencies",
+        ]
         for key, val in self._filter_conf.items():
             if val is None or key in special_filters:
                 continue
@@ -164,15 +167,11 @@ class EchoDataset(IEchoDataset):
         return ping_range_map, previous_ping
 
     def schools(
-            self,
-            cruise_idx: int,
-            fish_category: int
+        self, cruise_idx: int, fish_category: int
     ) -> list[list[int, int, int, int], ...]:
         return self._cruises[cruise_idx].school_boxes[fish_category]
 
     def crop(
-            self,
-            cruise_idx: int,
-            box: list[int, int, int, int]
+        self, cruise_idx: int, box: list[int, int, int, int]
     ) -> dict[str, xr.Dataset]:
         return self._cruises[cruise_idx].crop(*box)

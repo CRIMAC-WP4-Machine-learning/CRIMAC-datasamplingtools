@@ -113,13 +113,13 @@ class CruiseConfig:
     require_bottom: bool
 
     def __init__(
-            self,
-            path: Union[str, Path],
-            name: Optional[str] = None,
-            year: Optional[int] = None,
-            require_annotations: bool = False,
-            require_bottom: bool = False,
-            settings: Optional[dict[str, any]] = None
+        self,
+        path: Union[str, Path],
+        name: Optional[str] = None,
+        year: Optional[int] = None,
+        require_annotations: bool = False,
+        require_bottom: bool = False,
+        settings: Optional[dict[str, any]] = None,
     ) -> None:
         self.path = Path(path)
         self.name = name
@@ -141,33 +141,31 @@ class Cruise(ICruise):
         self._conf = conf
         data_filename, annotation_filename, bottom_filename = self._scan_path()
         self._data = self._read_data(
-            filename=data_filename,
-            required=True,
-            data_name=self._echogram_key
+            filename=data_filename, required=True, data_name=self._echogram_key
         )
         self._annotations = self._read_data(
             filename=annotation_filename,
             required=self._conf.require_annotations,
-            data_name=self._annotations_key
+            data_name=self._annotations_key,
         )
         self._bottom = self._read_data(
             filename=bottom_filename,
             required=self._conf.require_bottom,
-            data_name=self._bottom_key
+            data_name=self._bottom_key,
         )
         self._school_boxes = self._find_school_boxes()
 
     @classmethod
     def from_path(
-            cls,
-            path: Union[Path, str],
-            require_annotations: bool = False,
-            require_bottom: bool = False
+        cls,
+        path: Union[Path, str],
+        require_annotations: bool = False,
+        require_bottom: bool = False,
     ) -> "Cruise":
         conf = CruiseConfig(
             path=path,
             require_annotations=require_annotations,
-            require_bottom=require_bottom
+            require_bottom=require_bottom,
         )
         return cls(conf)
 
@@ -186,11 +184,12 @@ class Cruise(ICruise):
                 out.append("")
         return out
 
-    def _read_data(self, filename: str, required: bool, data_name: str) -> xr.Dataset:
+    def _read_data(
+        self, filename: str, required: bool, data_name: str
+    ) -> xr.Dataset:
         try:
             return xr.open_zarr(
-                store=self._conf.path / filename,
-                chunks={'frequency': 'auto'}
+                store=self._conf.path / filename, chunks={"frequency": "auto"}
             )
         except FileNotFoundError:
             if required:
@@ -201,14 +200,20 @@ class Cruise(ICruise):
                 )
                 return xr.Dataset()
 
-    def _find_school_boxes(self) -> dict[int, list[list[int, int, int, int], ...]]:
+    def _find_school_boxes(
+        self,
+    ) -> dict[int, list[list[int, int, int, int], ...]]:
         schools = dict()
         for c in self._annotations.category:
             if c == -1:
                 continue
             c = int(c)
             schools[c] = list()
-            mask = self._annotations.sel({"category": c}).annotation.compute().data.T
+            mask = (
+                self._annotations.sel({"category": c})
+                .annotation.compute()
+                .data.T
+            )
             contours, _ = cv.findContours(
                 mask.astype(np.uint8), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE
             )
@@ -219,14 +224,13 @@ class Cruise(ICruise):
 
     @staticmethod
     def _crop_data(
-            data: xr.Dataset,
-            box: list[int, int, int, int]
+        data: xr.Dataset, box: list[int, int, int, int]
     ) -> xr.Dataset:
         try:
             res = data.isel(
                 {
                     "ping_time": slice(box[0], box[2]),
-                    "range": slice(box[1], box[3])
+                    "range": slice(box[1], box[3]),
                 }
             )
         except ValueError:
@@ -286,7 +290,9 @@ class Cruise(ICruise):
     @property
     def frequencies(self) -> list[int, ...]:
         try:
-            return self._data.frequency.compute().astype(int).to_numpy().tolist()
+            return (
+                self._data.frequency.compute().astype(int).to_numpy().tolist()
+            )
         except AttributeError:
             raise KeyError("No `frequency` coordinate is found")
 
@@ -304,13 +310,7 @@ class Cruise(ICruise):
         except AttributeError:
             raise KeyError("No `range` coordinate is found")
 
-    def crop(
-            self,
-            x1: int,
-            y1: int,
-            x2: int,
-            y2: int
-    ) -> dict[str, xr.Dataset]:
+    def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
         res = dict()
         box = [x1, y1, x2, y2]
         res[self._echogram_key] = self._crop_data(self._data, box)

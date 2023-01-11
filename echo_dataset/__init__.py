@@ -35,10 +35,10 @@ del (
     _user_config_name,
     _user_config_path,
     _default_config,
-    f
+    f,
 )
 
 try:
-    del _user_config,
+    del (_user_config,)
 except NameError:
     pass

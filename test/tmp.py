@@ -58,7 +58,7 @@
 # print()
 
 
-from echo_dataset.core import Cruise, EchoDataset, CruiseConfig, RandomSchoolSampler
+from echo_dataset.core import Cruise, EchoDataset, CruiseConfig, RandomSchoolSampler, CompoundSampler, RandomBackgroundSampler
 
 
 paths = [
@@ -94,7 +94,13 @@ for i in range(len(paths)):
     )
     cruises.append(Cruise(cfg))
 
-sampler = RandomSchoolSampler(window_size=(256, 256))
+window_size = (256, 256)
+sampler = CompoundSampler(
+    samplers=[
+        RandomSchoolSampler(window_size=window_size),
+        RandomBackgroundSampler(window_size=window_size)
+    ]
+)
 
 ds = EchoDataset(
     cruises=cruises,
@@ -102,17 +108,21 @@ ds = EchoDataset(
     pseudo_length=1,
     cfg="./config.yaml"
 )
-print(ds)
 
-a = ds[0]
-b = ds[1]
+for _ in range(1000):
+    ds[0]
 
-for k, v in a.items():
-    print(k)
-    print(v)
-    print()
-
-for k, v in b.items():
-    print(k)
-    print(v)
-    print()
+# print(ds)
+#
+# a = ds[0]
+# b = ds[1]
+#
+# for k, v in a.items():
+#     print(k)
+#     print(v)
+#     print()
+#
+# for k, v in b.items():
+#     print(k)
+#     print(v)
+#     print()

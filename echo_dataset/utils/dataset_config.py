@@ -1,6 +1,5 @@
 from schema import Schema
 
-import typing
 
 __all__ = ["is_valid"]
 

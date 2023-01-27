@@ -2,11 +2,13 @@ from ..utils import generate_data_filename_patterns
 from ..utils.module_config import is_valid
 from .. import CONFIG
 
+import datatable as dt
 import xarray as xr
 import numpy as np
 import cv2 as cv
 
 from dataclasses import dataclass, MISSING
+from collections import defaultdict
 from typing import Union, Optional
 from pathlib import Path
 import warnings
@@ -20,7 +22,7 @@ class ICruise:
     _echogram_key: str
     _annotations_key: str
     _bottom_key: str
-    _school_boxes: dict[int, list[list[int, int, int, int], ...]]
+    _school_boxes: dict[int, list[tuple[int, int, int, int], ...]]
 
     @property
     def info(self) -> dict[str, any]:
@@ -79,7 +81,9 @@ class ICruise:
         raise NotImplementedError
 
     @property
-    def school_boxes(self) -> dict[int, list[list[int, int, int, int], ...]]:
+    def school_boxes(
+        self,
+    ) -> dict[int, list[tuple[int, int, int, int], ...]]:
         return self._school_boxes
 
     def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
@@ -158,7 +162,10 @@ class Cruise(ICruise):
             required=self._conf.require_bottom,
             data_name=self._bottom_key,
         )
-        self._school_boxes = self._find_school_boxes()
+        if schools_filename != "":
+            self._school_boxes = self._load_school_boxes(schools_filename)
+        else:
+            self._school_boxes = self._find_school_boxes()
 
     @classmethod
     def from_path(
@@ -207,7 +214,9 @@ class Cruise(ICruise):
 
     def _find_school_boxes(
         self,
-    ) -> dict[int, list[list[int, int, int, int], ...]]:
+    ) -> dict[int, list[tuple[int, int, int, int], ...]]:
+        if not self.annotations_available:
+            return dict()
         schools = dict()
         for c in self._annotations.category:
             if c == -1:
@@ -224,8 +233,33 @@ class Cruise(ICruise):
             )
             for cont in contours:
                 x, y, w, h = cv.boundingRect(cont)
-                schools[c].append([x, y, x + w, y + h])
+                schools[c].append((x, y, x + w, y + h))
         return schools
+
+    def _load_school_boxes(
+        self, filepath: str
+    ) -> dict[int, list[tuple[int, int, int, int], ...]]:
+        schools = dt.fread(file=self._conf.path / filepath, header=True)
+        schools = schools[
+            (dt.f.category > 0)
+            & (dt.f.startpingindex >= 0)
+            & (dt.f.endpingindex >= 0)
+            & (dt.f.upperdepthindex >= 0)
+            & (dt.f.lowerdepthindex >= 0),
+            :,
+        ]
+        boxes = defaultdict(list)
+        for i in range(schools.nrows):
+            boxes[schools[i, "category"]].append(
+                (
+                    schools[i, "startpingindex"],
+                    schools[i, "upperdepthindex"],
+                    schools[i, "endpingindex"],
+                    schools[i, "lowerdepthindex"],
+                    # schools[i, "category"],
+                )
+            )
+        return boxes
 
     @staticmethod
     def _crop_data(
@@ -280,7 +314,8 @@ class Cruise(ICruise):
     @property
     def categories(self) -> list[int, ...]:
         if self.annotations_available:
-            return self._annotations.category.compute().to_numpy().tolist()
+            return list(self._school_boxes.keys())
+            # return self._annotations.category.compute().to_numpy().tolist()
         else:
             return []
 

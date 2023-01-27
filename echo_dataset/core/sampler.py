@@ -77,6 +77,11 @@ class RandomSchoolSampler(ISampler):
             assert window["bottom"].ping_time.size == self._window_size[0]
             assert window["bottom"].range.size == self._window_size[1]
 
+            if window["annotations"]["annotation"].isnull().any().compute():
+                continue
+            if window["echogram"]["sv"].isnull().any().compute():
+                continue
+
             if window["annotations"]["annotation"].any().compute():
                 return window
 
@@ -139,6 +144,11 @@ class RandomBackgroundSampler(ISampler):
                 window["bottom"].range.size == self._window_size[1],
             ]
             if sum(cond) != len(cond):
+                continue
+
+            if window["annotations"]["annotation"].isnull().any().compute():
+                continue
+            if window["echogram"]["sv"].isnull().any().compute():
                 continue
 
             if not window["annotations"]["annotation"].any().compute():

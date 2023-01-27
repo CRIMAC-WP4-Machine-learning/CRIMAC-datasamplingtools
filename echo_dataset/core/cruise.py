@@ -131,8 +131,9 @@ class CruiseConfig:
         self.require_annotations = require_annotations
         self.require_bottom = require_bottom
         if settings is not None:
-            if is_valid(settings):
-                self.settings = settings
+            merged_settings = CONFIG | settings
+            if is_valid(merged_settings):
+                self.settings = merged_settings
         else:
             self.settings = CONFIG
 

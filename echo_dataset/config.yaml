@@ -2,3 +2,4 @@
 survey_suffix: "sv"
 bottom_suffix: "bottom"
 labels_suffix: "labels"
+schools_suffix: "labels.parquet.csv"

@@ -139,7 +139,12 @@ class Cruise(ICruise):
         self._annotations_key = "annotations"
         self._bottom_key = "bottom"
         self._conf = conf
-        data_filename, annotation_filename, bottom_filename = self._scan_path()
+        (
+            data_filename,
+            annotation_filename,
+            bottom_filename,
+            schools_filename,
+        ) = self._scan_path()
         self._data = self._read_data(
             filename=data_filename, required=True, data_name=self._echogram_key
         )

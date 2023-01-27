@@ -43,6 +43,9 @@ class IEchoDataset:
     ) -> list[list[int, int, int, int], ...]:
         raise NotImplementedError
 
+    def cruise(self, idx: int) -> ICruise:
+        return self._cruises[idx]
+
     def crop(
         self, cruise_idx: int, box: list[int, int, int, int]
     ) -> dict[str, xr.Dataset]:
@@ -171,7 +174,7 @@ class EchoDataset(IEchoDataset):
 
     def schools(
         self, cruise_idx: int, fish_category: int
-    ) -> list[list[int, int, int, int], ...]:
+    ) -> list[tuple[int, int, int, int], ...]:
         return self._cruises[cruise_idx].school_boxes[fish_category]
 
     def crop(

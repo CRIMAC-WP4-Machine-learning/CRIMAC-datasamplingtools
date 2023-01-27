@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "echo-dataset"
-version = "0.2.2"
+version = "0.3.0"
 description = ""
 authors = ["Andrei Margert <andrei.margert@wur.nl>"]
 readme = "README.md"
@@ -20,6 +20,7 @@ opencv-python = "^4.6.0.66"
 [tool.poetry.group.dev.dependencies]
 matplotlib = "^3.6.1"
 black = {extras = ["d"], version = "^22.12.0"}
+tqdm = "^4.64.1"
 
 [build-system]
 requires = ["poetry-core"]

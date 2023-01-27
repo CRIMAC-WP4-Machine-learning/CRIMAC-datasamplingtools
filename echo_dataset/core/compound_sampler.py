@@ -44,8 +44,11 @@ class CompoundSampler(ICompoundSampler):
         window_size: tuple[int, int],
         weights: Optional[Sequence[float]] = None,
     ) -> None:
-        super()._window_size = window_size
-        super()._sampler_objs = samplers
+        # super()._window_size = window_size
+        # super()._sampler_objs = samplers
+        # self._samplers = super()._init_samplers()
+        self._window_size = window_size
+        self._sampler_objs = samplers
         self._samplers = super()._init_samplers()
         if weights is None:
             self._weights = [1 / len(self)] * len(self)

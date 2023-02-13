@@ -15,6 +15,7 @@ xarray = "^2022.9.0"
 zarr = "^2.13.2"
 dask = "^2022.9.1"
 opencv-python = "^4.6.0.66"
+bokeh = "^3.0.3"
 
 
 [tool.poetry.group.dev.dependencies]

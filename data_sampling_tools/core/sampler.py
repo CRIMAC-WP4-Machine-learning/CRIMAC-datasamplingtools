@@ -11,16 +11,18 @@ class SamplerItem:
     """
     :param x: x coordinate of the upper left corner of the sampled window.
     :param y: y coordinate of the upper left corner of the sampled window.
-    :param h: sampled window height.
-    :param w: sampled window width.
+    :param w: sampled window width; adds to x coordinate.
+    :param h: sampled window height; adds to y coordinate.
     :param cruise_idx: cruise index according to the caller's enumeration.
     :param cruise_info: information summary about the selected cruise.
     """
 
     x: int
     y: int
-    h: int
     w: int
+    h: int
+    x_padding: int
+    y_padding: int
     cruise_idx: int
     cruise_info: dict[str, any]
 

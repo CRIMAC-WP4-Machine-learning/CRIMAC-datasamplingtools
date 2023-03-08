@@ -1,58 +1,13 @@
-from .compound_sampler import ICompoundSampler
+from ..core import IDataset, ICruise, ISampler, ICompoundSampler
 from ..utils.dataset_config import is_valid
-from .sampler import ISampler
-from .cruise import ICruise
 
-import datatable as dt
-import xarray as xr
 import yaml
 
 from collections import defaultdict, OrderedDict
 from typing import Sequence, Union
 
 
-class IEchoDataset:
-    _cruises: list[ICruise, ...]
-    _table: dt.Frame
-    _summary: dt.Frame
-    _ping_range_map: dict[int, int]
-    _total_num_pings: int
-
-    @property
-    def table(self) -> dt.Frame:
-        return self._table
-
-    @property
-    def summary(self) -> dt.Frame:
-        return self._summary
-
-    @property
-    def num_cruises(self) -> int:
-        return len(self._cruises)
-
-    @property
-    def ping_range_map(self) -> dict[int, int]:
-        return self._ping_range_map
-
-    @property
-    def total_num_pings(self) -> int:
-        return self._total_num_pings
-
-    def schools(
-        self, cruise_idx: int, fish_category: int
-    ) -> list[list[int, int, int, int], ...]:
-        raise NotImplementedError
-
-    def cruise(self, idx: int) -> ICruise:
-        return self._cruises[idx]
-
-    def crop(
-        self, cruise_idx: int, box: list[int, int, int, int]
-    ) -> dict[str, xr.Dataset]:
-        raise NotImplementedError
-
-
-class EchoDataset(IEchoDataset):
+class BaseDataset(IDataset):
     def __init__(
         self,
         cruises: Sequence[ICruise],

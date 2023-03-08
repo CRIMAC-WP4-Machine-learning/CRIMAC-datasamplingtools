@@ -1,9 +1,13 @@
 import datatable as dt
 import xarray as xr
 
-from typing import Union, Sequence, Optional
+from typing import Union, Sequence, Optional, TypeVar
 from pathlib import Path
+import collections.abc
 import abc
+
+
+Self = TypeVar("Self", bound="ICruise")
 
 
 class ICruise(metaclass=abc.ABCMeta):
@@ -36,6 +40,8 @@ class ICruise(metaclass=abc.ABCMeta):
             and callable(subclass.bottom_available)
             and hasattr(subclass, "bottom")
             and callable(subclass.bottom)
+            and hasattr(subclass, "from_box")
+            and callable(subclass.from_box)
             and hasattr(subclass, "crop")
             and callable(subclass.crop)
             or NotImplemented
@@ -109,6 +115,20 @@ class ICruise(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def from_box(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        /,
+        *,
+        category: int,
+        force_find_school_boxes: bool,
+    ) -> Self:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
         """
                     Ping time
@@ -130,7 +150,9 @@ class ICruise(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class ICruiseList(metaclass=abc.ABCMeta):
+class ICruiseList(
+    collections.abc.Iterable, collections.abc.Sized, metaclass=abc.ABCMeta
+):
     @classmethod
     def __subclasshook__(cls, subclass) -> Union[bool, type(NotImplemented)]:
         return (

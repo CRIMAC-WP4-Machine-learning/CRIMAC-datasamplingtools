@@ -58,56 +58,55 @@
 # print()
 
 
-
-from echo_dataset.core import (
-    Cruise,
-    EchoDataset,
-    CruiseConfig,
-    RandomSchoolSampler,
-    CompoundSampler,
-    RandomBackgroundSampler,
-)
-
-
-paths = [
-    "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
-    "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
-    "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED",
-]
+# from echo_dataset.core import (
+#     Cruise,
+#     EchoDataset,
+#     CruiseConfig,
+#     RandomSchoolSampler,
+#     CompoundSampler,
+#     RandomBackgroundSampler,
+# )
+#
+#
 # paths = [
-#     "../data/sandeel_survey/2018/test_survey_0/ACOUSTIC/GRIDDED",
-#     "../data/sandeel_survey/2018/test_survey_1/ACOUSTIC/GRIDDED",
-#     "../data/sandeel_survey/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
+#     "../data/2018/SCH72_2019241/ACOUSTIC/GRIDDED",
+#     "../data/2018/SYNTH_34322/ACOUSTIC/GRIDDED",
+#     "../data/2019/SYNTH_9393784/ACOUSTIC/GRIDDED",
 # ]
-names = ["cruise 1", None, "cruise 3"]
-years = [2019, 2018, None]
-
-cruises = list()
-for i in range(len(paths)):
-    cfg = CruiseConfig(
-        path=paths[i],
-        name=names[i],
-        year=years[i],
-        require_annotations=True,
-        require_bottom=False,
-        settings=None,
-    )
-    cruises.append(Cruise(cfg))
-
-window_size = (256, 256)
-sampler = CompoundSampler(
-    samplers=[
-        RandomSchoolSampler(window_size=window_size),
-        RandomBackgroundSampler(window_size=window_size),
-    ]
-)
-
-ds = EchoDataset(
-    cruises=cruises, sampler=sampler, pseudo_length=1, cfg="./config.yaml"
-)
-
-for _ in range(1000):
-    ds[0]
+# # paths = [
+# #     "../data/sandeel_survey/2018/test_survey_0/ACOUSTIC/GRIDDED",
+# #     "../data/sandeel_survey/2018/test_survey_1/ACOUSTIC/GRIDDED",
+# #     "../data/sandeel_survey/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
+# # ]
+# names = ["cruise 1", None, "cruise 3"]
+# years = [2019, 2018, None]
+#
+# cruises = list()
+# for i in range(len(paths)):
+#     cfg = CruiseConfig(
+#         path=paths[i],
+#         name=names[i],
+#         year=years[i],
+#         require_annotations=True,
+#         require_bottom=False,
+#         settings=None,
+#     )
+#     cruises.append(Cruise(cfg))
+#
+# window_size = (256, 256)
+# sampler = CompoundSampler(
+#     samplers=[
+#         RandomSchoolSampler(window_size=window_size),
+#         RandomBackgroundSampler(window_size=window_size),
+#     ]
+# )
+#
+# ds = EchoDataset(
+#     cruises=cruises, sampler=sampler, pseudo_length=1, cfg="./config.yaml"
+# )
+#
+# for _ in range(1000):
+#     ds[0]
 
 # print(ds)
 #
@@ -123,3 +122,28 @@ for _ in range(1000):
 #     print(k)
 #     print(v)
 #     print()
+
+
+from echo_dataset import dst
+
+
+cruise_path = "../data/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
+cruise_name = "SCH72_2019241"
+year = 2019
+
+cruise_cfg = dst.CruiseConfig(
+    path=cruise_path,
+    name=cruise_name,
+    year=year,
+    require_annotations=True,
+    require_bottom=True,
+)
+cruise = dst.CruiseBase(conf=cruise_cfg)
+cruise_list = dst.CruiseListBase(cruises=[cruise])
+
+# a = cruise_list.table
+# s = dst.RandomSchoolSampler(256)
+s = dst.GriddedSchoolSampler(256)
+s.full_init(cruise_list=cruise_list)
+sampler_item = s()
+print(sampler_item)

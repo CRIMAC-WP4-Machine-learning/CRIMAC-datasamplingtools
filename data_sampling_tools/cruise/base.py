@@ -8,11 +8,12 @@ import datatable as dt
 import xarray as xr
 import cv2 as cv
 
-from typing import Union, TypeVar, Optional, Sequence
+from typing import Union, TypeVar, Optional, Sequence, Iterable
 from dataclasses import dataclass, MISSING
 from collections import defaultdict
 from pathlib import Path
 import warnings
+import copy
 import os
 
 
@@ -54,7 +55,7 @@ class CruiseBase(ICruise):
     __echogram_key = "echogram"
     __annotations_key = "annotations"
     __bottom_key = "bottom"
-    __ping_time_key = "ping_key"
+    __ping_time_key = "ping_time"
     __range_key = "range"
 
     def __init__(
@@ -239,7 +240,7 @@ class CruiseBase(ICruise):
     def school_boxes(
         self,
     ) -> dict[int, list[tuple[int, int, int, int], ...]]:
-        raise self._school_boxes
+        return self._school_boxes
 
     @property
     def school_boxes_origin(self) -> str:
@@ -252,6 +253,53 @@ class CruiseBase(ICruise):
     @property
     def bottom(self) -> xr.Dataset:
         return self._bottom
+
+    def from_box(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        /,
+        *,
+        category: int,
+        force_find_school_boxes: bool = False,
+    ) -> Self:
+        new_conf = copy.deepcopy(self._conf)
+        new_conf.name = new_conf.name + f"-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
+        cruise = self._from_box(
+            conf=new_conf,
+            force_find_school_boxes=force_find_school_boxes,
+        )
+        cruise._echogram = cruise._echogram.isel(
+            {
+                self.__range_key: slice(y1, y2),
+                self.__ping_time_key: slice(x1, x2),
+            }
+        )
+        if cruise.annotations_available:
+            cruise._annotations = cruise._annotations.isel(
+                {
+                    self.__range_key: slice(y1, y2),
+                    self.__ping_time_key: slice(x1, x2),
+                }
+            )
+        if cruise.bottom_available:
+            cruise._bottom = cruise._bottom.isel(
+                {
+                    self.__range_key: slice(y1, y2),
+                    self.__ping_time_key: slice(x1, x2),
+                }
+            )
+        return cruise
+
+    @classmethod
+    def _from_box(
+        cls,
+        conf: CruiseConfig,
+        force_find_school_boxes: bool = False,
+    ) -> Self:
+        return cls(conf=conf, force_find_school_boxes=force_find_school_boxes)
 
     def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
         res = dict()
@@ -266,8 +314,8 @@ class CruiseBase(ICruise):
     ) -> xr.Dataset:
         return data.isel(
             {
-                self.__ping_time_key: slice(box[0], box[2]),
                 self.__range_key: slice(box[1], box[3]),
+                self.__ping_time_key: slice(box[0], box[2]),
             }
         )
 
@@ -287,6 +335,9 @@ class CruiseListBase(ICruiseList):
 
     def __len__(self) -> int:
         return len(self._cruises)
+
+    def __iter__(self) -> Iterable[ICruise]:
+        return self.cruises
 
     def __repr__(self) -> str:
         return str(self._table)

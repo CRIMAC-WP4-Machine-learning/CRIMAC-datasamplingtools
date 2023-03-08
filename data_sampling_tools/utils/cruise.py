@@ -11,9 +11,10 @@ def parse_cruises(
 ) -> tuple[
     dt.Frame, int, tuple[float, ...], int, int, tuple[int, ...], tuple[int, ...]
 ]:
-    table_columns = ("name", "year", "category", "frequencies", "full_path")
+    table_columns = ("name", "year", "index", "category", "frequencies", "full_path")
     table_types = (
         dt.Type.str32,
+        dt.Type.int16,
         dt.Type.int16,
         dt.Type.int8,
         dt.Type.str32,
@@ -26,7 +27,7 @@ def parse_cruises(
     max_range_len = -m.inf
     frequencies = list()
     categories = list()
-    for cruise in cruises:
+    for i, cruise in enumerate(cruises):
         total_num_pings += cruise.num_pings
         cruise_ping_fractions.append(cruise.num_pings)
         min_range_len = min(min_range_len, cruise.num_ranges)
@@ -37,6 +38,7 @@ def parse_cruises(
             row_data = (
                 cruise.info["name"],
                 cruise.info["year"],
+                i,
                 category,
                 ", ".join([str(f) for f in cruise.frequencies]),
                 str(cruise.path),

@@ -1,4 +1,4 @@
-from .utils.module_config import is_valid
+from .utils.module_config import module_cfg_is_valid
 
 import yaml
 
@@ -21,7 +21,7 @@ with open(_default_config_path, "r") as f:
 if os.path.exists(_user_config_path):
     with open(_user_config_path, "r") as f:
         _user_config = yaml.load(f, yaml.FullLoader)
-        if is_valid(_user_config):
+        if module_cfg_is_valid(_user_config):
             CONFIG = {**_default_config, **_user_config}
         else:
             raise ValueError("Invalid user config")
@@ -39,6 +39,6 @@ del (
 )
 
 try:
-    del (_user_config,)
+    del _user_config
 except NameError:
     pass

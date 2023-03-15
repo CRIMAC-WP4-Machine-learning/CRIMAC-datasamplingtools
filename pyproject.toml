@@ -4,7 +4,7 @@ version = "0.3.0"
 description = ""
 authors = ["Andrei Margert <andrei.margert@wur.nl>"]
 readme = "README.md"
-packages = [{include = "echo_dataset"}]
+packages = [{include = "data_sampling_tools"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
@@ -14,8 +14,8 @@ xarray = "^2022.9.0"
 zarr = "^2.13.2"
 dask = "^2022.9.1"
 opencv-python = "^4.6.0.66"
-datatable = {git = "git@github.com:h2oai/datatable.git", branch = "main", python = ">3.9"}
-holoviews = "^1.15.4"
+polars = "^0.16.11"
+#datatable = {git = "git@github.com:h2oai/datatable.git", branch = "main", python = ">3.9"}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -23,6 +23,7 @@ matplotlib = "^3.6.1"
 black = {extras = ["d"], version = "^22.12.0"}
 tqdm = "^4.64.1"
 jupyter = "^1.0.0"
+holoviews = "^1.15.4"
 
 [build-system]
 requires = ["poetry-core"]

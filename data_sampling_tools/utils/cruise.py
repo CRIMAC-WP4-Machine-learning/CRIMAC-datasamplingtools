@@ -1,26 +1,30 @@
 from ..core.cruise import ICruise
 
-import datatable as dt
+import polars as pl
 
 from typing import Sequence
 import math as m
 
 
 def parse_cruises(
-    cruises: Sequence[ICruise]
+    cruises: Sequence[ICruise],
 ) -> tuple[
-    dt.Frame, int, tuple[float, ...], int, int, tuple[int, ...], tuple[int, ...]
+    pl.DataFrame, int, tuple[float, ...], int, int, tuple[int, ...], tuple[int, ...]
 ]:
-    table_columns = ("name", "year", "index", "category", "frequencies", "full_path")
-    table_types = (
-        dt.Type.str32,
-        dt.Type.int16,
-        dt.Type.int16,
-        dt.Type.int8,
-        dt.Type.str32,
-        dt.Type.str32,
-    )
-    table = dt.Frame(names=table_columns, types=table_types)
+    df_schema = {
+        "name": pl.Utf8,
+        "year": pl.UInt16,
+        "index": pl.UInt16,
+        "category": pl.UInt8,
+        "frequencies": pl.List(pl.UInt32),
+        "full_path": pl.Utf8,
+    }
+    name_col = list()
+    year_col = list()
+    index_col = list()
+    category_col = list()
+    frequencies_col = list()
+    full_path_col = list()
     total_num_pings = 0
     cruise_ping_fractions = list()
     min_range_len = m.inf
@@ -35,21 +39,26 @@ def parse_cruises(
         frequencies.extend(cruise.frequencies)
         categories.extend(cruise.categories)
         for category in cruise.categories:
-            row_data = (
-                cruise.info["name"],
-                cruise.info["year"],
-                i,
-                category,
-                ", ".join([str(f) for f in cruise.frequencies]),
-                str(cruise.path),
-            )
-            row = dt.Frame([row_data], names=table_columns, types=table_types)
-            table.rbind(row)
-    cruise_ping_fractions = [
-        *map(lambda x: x / total_num_pings, cruise_ping_fractions)
-    ]
+            name_col.append(cruise.info["name"])
+            year_col.append(cruise.info["year"])
+            index_col.append(i)
+            category_col.append(category)
+            frequencies_col.append(cruise.frequencies)
+            full_path_col.append(str(cruise.path))
+    cruise_ping_fractions = [*map(lambda x: x / total_num_pings, cruise_ping_fractions)]
+    df = pl.DataFrame(
+        data=[
+            name_col,
+            year_col,
+            index_col,
+            category_col,
+            frequencies_col,
+            full_path_col,
+        ],
+        schema=df_schema,
+    )
     return (
-        table,
+        df,
         total_num_pings,
         tuple(cruise_ping_fractions),
         min_range_len,
@@ -57,5 +66,6 @@ def parse_cruises(
         tuple(set(frequencies)),
         tuple(set(categories)),
     )
+
 
 __all__ = ["parse_cruises"]

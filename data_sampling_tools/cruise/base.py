@@ -4,7 +4,7 @@ from ..utils.cruise import parse_cruises
 from ..core import ICruise, ICruiseList
 from .. import CONFIG
 
-import datatable as dt
+import polars as pl
 import xarray as xr
 import cv2 as cv
 
@@ -167,17 +167,16 @@ class CruiseBase(ICruise):
     ) -> dict[int, list[tuple[int, int, int, int], ...]]:
         if not self.annotations_available:
             return dict()
-        schools = dt.fread(file=self._conf.path / filepath, header=True)
-        schools = schools[
-            (dt.f.category > 0)
-            & (dt.f.startpingindex >= 0)
-            & (dt.f.endpingindex >= 0)
-            & (dt.f.upperdepthindex >= 0)
-            & (dt.f.lowerdepthindex >= 0),
-            :,
-        ]
+        schools = pl.read_csv(file=self._conf.path / filepath, has_header=True)
+        schools = schools.filter(
+            (pl.col("category") > 0)
+            & (pl.col("startpingindex") >= 0)
+            & (pl.col("endpingindex") >= 0)
+            & (pl.col("upperdepthindex") >= 0)
+            & (pl.col("lowerdepthindex") >= 0)
+        )
         boxes = defaultdict(list)
-        for i in range(schools.nrows):
+        for i in range(len(schools)):
             boxes[schools[i, "category"]].append(
                 (
                     schools[i, "startpingindex"],
@@ -343,7 +342,7 @@ class CruiseListBase(ICruiseList):
         return str(self._table)
 
     @property
-    def table(self) -> dt.Frame:
+    def table(self) -> pl.DataFrame:
         return self._table
 
     @property

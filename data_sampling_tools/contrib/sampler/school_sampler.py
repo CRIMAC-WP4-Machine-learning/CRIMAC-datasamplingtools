@@ -4,7 +4,7 @@ from data_sampling_tools.core.sampler import SamplerItem
 from data_sampling_tools.core.cruise import ICruiseList
 from data_sampling_tools.cruise import CruiseListBase
 
-import datatable as dt
+import polars as pl
 import numpy as np
 
 from typing import Optional, Sequence
@@ -85,7 +85,7 @@ class RandomSchoolSampler(BaseRandomSampler):
     def __call__(self, *args, **kwargs) -> SamplerItem:
         # Select a category and filter the ICruiseList.table by it
         category = np.random.choice(self._categories, p=self._category_weights)
-        table = self._cruise_list.table[dt.f.category == category, :]
+        table = self._cruise_list.table.filter(pl.col("category") == category)
         # Select a random row
         row_idx = np.random.randint(0, table.nrows)
         row = table[row_idx, :]
@@ -100,16 +100,6 @@ class RandomSchoolSampler(BaseRandomSampler):
             window_width=self._window_size["w"],
             window_height=self._window_size["h"],
         )
-        # x_min = max(box[0] - self._window_size["w"] // 2, 0)
-        # y_min = max(box[1] - self._window_size["h"] // 2, 0)
-        # x_max = min(
-        #     box[2] - self._window_size["w"] // 2,
-        #     cruise.num_pings - self._window_size["w"] // 2,
-        # )
-        # y_max = min(
-        #     box[3] - self._window_size["h"] // 2,
-        #     cruise.num_ranges - self._window_size["h"] // 2,
-        # )
         try:
             assert x_min < x_max
             assert y_min < y_max

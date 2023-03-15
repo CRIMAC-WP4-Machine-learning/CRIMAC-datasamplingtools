@@ -1,4 +1,4 @@
-import datatable as dt
+import polars as pl
 import xarray as xr
 
 from typing import Union, Sequence, Optional, TypeVar
@@ -183,7 +183,7 @@ class ICruiseList(
 
     @property
     @abc.abstractmethod
-    def table(self) -> dt.Frame:
+    def table(self) -> pl.DataFrame:
         """Table with the summary over the cruises."""
         raise NotImplementedError
 

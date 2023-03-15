@@ -1,6 +1,6 @@
 from .cruise import ICruiseList
 
-import datatable as dt
+import polars as pl
 import xarray as xr
 
 from typing import Union
@@ -21,7 +21,7 @@ class IDataset(collections.abc.Sized, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def table(self) -> dt.Frame:
+    def table(self) -> pl.DataFrame:
         raise NotImplementedError
 
     @property
@@ -29,6 +29,7 @@ class IDataset(collections.abc.Sized, metaclass=abc.ABCMeta):
     def cruise_list(self) -> ICruiseList:
         raise NotImplementedError
 
+    @abc.abstractmethod
     def __getitem__(self, index: int) -> dict[str, xr.Dataset]:
         raise NotImplementedError
 

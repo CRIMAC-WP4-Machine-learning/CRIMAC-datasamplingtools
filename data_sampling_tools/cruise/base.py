@@ -11,7 +11,6 @@ from collections import defaultdict
 from pprint import PrettyPrinter
 from pathlib import Path
 import warnings
-import copy
 import os
 
 
@@ -156,7 +155,7 @@ class CruiseBase(ICruise):
 
     @property
     def info(self) -> dict[str, any]:
-        return self._info
+        return dict(self._conf)
 
     @property
     def path(self) -> Path:
@@ -209,7 +208,7 @@ class CruiseBase(ICruise):
         return self._school_boxes
 
     @property
-    def school_boxes_origin(self) -> str:
+    def school_boxes_origin(self) -> SchoolBoxesOrigin:
         return self._school_boxes_origin
 
     @property
@@ -226,17 +225,18 @@ class CruiseBase(ICruise):
         y1: int,
         x2: int,
         y2: int,
-        /,
         *,
-        category: int,
+        category: int = -1,
         force_find_school_boxes: bool = False,
     ) -> Self:
-        new_conf = copy.deepcopy(self._conf)
-        new_conf.name = new_conf.name + f"-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
-        cruise = self._from_box(
-            conf=new_conf,
-            force_find_school_boxes=force_find_school_boxes,
-        )
+        try:
+            assert x1 < x2
+            assert y1 < y2
+        except AssertionError:
+            raise ValueError("Inconsistent box dimensions")
+        new_conf_dict = dict(self._conf)
+        new_conf_dict["name"] += f"-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
+        cruise = self._from_box(conf=CruiseConfig(**new_conf_dict))
         cruise._echogram = cruise._echogram.isel(
             {
                 self._conf.zarr_keys.range_key: slice(y1, y2),
@@ -257,15 +257,29 @@ class CruiseBase(ICruise):
                     self._conf.zarr_keys.ping_time_key: slice(x1, x2),
                 }
             )
+        new_school_boxes = list()
+        for box in cruise._school_boxes[category]:
+            contained_box = box_contains(
+                domain_box=tuple([x1, y1, x2, y2]), other_box=box
+            )
+            if len(contained_box) == 4:
+                new_box = tuple(
+                    [
+                        contained_box[0] - x1,
+                        contained_box[1] - y1,
+                        contained_box[2] - x1,
+                        contained_box[3] - y1,
+                    ]
+                )
+                new_school_boxes.append(new_box)
+            else:
+                continue
+        cruise._school_boxes = {category: new_school_boxes}
         return cruise
 
     @classmethod
-    def _from_box(
-        cls,
-        conf: CruiseConfig,
-        force_find_school_boxes: bool = False,
-    ) -> Self:
-        return cls(conf=conf, force_find_school_boxes=force_find_school_boxes)
+    def _from_box(cls, conf: CruiseConfig) -> Self:
+        return cls(conf=conf)
 
     def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
         res = dict()

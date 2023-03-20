@@ -5,8 +5,8 @@
 # It is highly recommended to use the default input type for each filter.
 # See type annotation for each filter below.
 
-# # # Filters # # #
-filters:
+# # # Filter # # #
+filter:
 
   # Type: list[int, ...]
   # Notes: only selects a survey, if it contains ALL the frequencies mentioned.

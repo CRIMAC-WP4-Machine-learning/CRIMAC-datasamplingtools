@@ -102,7 +102,7 @@ class CruiseBase(ICruise):
             if val.isnull().any():
                 warnings.warn(
                     f"NaN values encountered while reading `{data_name}` data in cruise:\n{self}",
-                    RuntimeWarning
+                    RuntimeWarning,
                 )
             return val
         except FileNotFoundError:

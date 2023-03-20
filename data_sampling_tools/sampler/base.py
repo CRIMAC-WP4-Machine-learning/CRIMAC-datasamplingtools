@@ -177,4 +177,4 @@ class BaseGriddedSampler(IStatefulSampler):
 #     pass
 
 
-__all__ =["BaseCompoundRandomSampler", "BaseRandomSampler", "BaseGriddedSampler"]
+__all__ = ["BaseCompoundRandomSampler", "BaseRandomSampler", "BaseGriddedSampler"]

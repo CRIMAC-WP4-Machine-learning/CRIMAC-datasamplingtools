@@ -11,9 +11,7 @@ import os
 base_path = Path(os.path.abspath(__file__)).parent.parent.parent.parent
 valid_path = base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
 valid_path_str = str(base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED")
-non_dir_path = (
-    base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED/SCH72_2019241.png"
-)
+non_dir_path = base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED/SCH72_2019241.png"
 non_existing_path = base_path / "data/2019/SCH72_2019300/ACOUSTIC/GRIDDED"
 require_annotations = True
 require_bottom = True

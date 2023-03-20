@@ -3,11 +3,18 @@ import xarray as xr
 
 from typing import Union, Sequence, Optional, TypeVar
 from pathlib import Path
+from enum import Enum
 import collections.abc
 import abc
 
 
 Self = TypeVar("Self", bound="ICruise")
+
+
+class SchoolBoxesOrigin(Enum):
+    NOT_AVAILABLE = 1
+    CSV = 2
+    CONTOUR_SEARCH = 3
 
 
 class ICruise(metaclass=abc.ABCMeta):

@@ -51,13 +51,13 @@ class CruiseBase(ICruise):
             required=self._conf.require_bottom,
             data_name=self._conf.zarr_keys.bottom_key,
         )
-        self._school_boxes_origin = "not available"
-        if (not force_find_school_boxes) and schools_filename != "":
+        self._school_boxes_origin = SchoolBoxesOrigin.NOT_AVAILABLE
+        if (not self._conf.force_find_school_boxes) and schools_filename != "":
             self._school_boxes = self._load_school_boxes(schools_filename)
-            self._school_boxes_origin = "csv"
+            self._school_boxes_origin = SchoolBoxesOrigin.CSV
         else:
             self._school_boxes = self._find_school_boxes()
-            self._school_boxes_origin = "contour search"
+            self._school_boxes_origin = SchoolBoxesOrigin.CONTOUR_SEARCH
 
     @classmethod
     def from_path(

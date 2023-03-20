@@ -14,8 +14,8 @@ xarray = "^2022.9.0"
 zarr = "^2.13.2"
 dask = "^2022.9.1"
 opencv-python = "^4.6.0.66"
-polars = "^0.16.11"
-#datatable = {git = "git@github.com:h2oai/datatable.git", branch = "main", python = ">3.9"}
+polars = "^0.16.14"
+pydantic = "^1.10.6"
 
 
 [tool.poetry.group.dev.dependencies]

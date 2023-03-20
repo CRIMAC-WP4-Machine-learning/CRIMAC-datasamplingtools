@@ -90,18 +90,25 @@ class CruiseBase(ICruise):
                 out.append("")
         return out
 
-    # TODO: add data validation -- basic checks for NaN and other breaking conditions
     def _read_data(self, filename: str, required: bool, data_name: str) -> xr.Dataset:
         try:
-            return xr.open_zarr(
+            val = xr.open_zarr(
                 store=self._conf.path / filename, chunks={"frequency": "auto"}
             )
+            if val.isnull().any():
+                warnings.warn(
+                    f"NaN values encountered while reading `{data_name}` data in cruise:\n{self}",
+                    RuntimeWarning
+                )
+            return val
         except FileNotFoundError:
             if required:
-                raise Exception(f"Required data `{data_name}` not found in {self.path}")
+                raise FileNotFoundError(
+                    f"Required data `{data_name}` not found for cruise:\n{self}"
+                )
             else:
                 warnings.warn(
-                    f"Optional data `{data_name}` is not found for {self.path} cruise"
+                    f"Optional data `{data_name}` is not found for cruise:\n{self._conf}"
                 )
                 return xr.Dataset()
 

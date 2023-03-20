@@ -6,9 +6,9 @@ import polars as pl
 import xarray as xr
 import cv2 as cv
 
-from typing import Union, TypeVar, Optional, Sequence, Iterable
-from dataclasses import dataclass, MISSING
+from typing import Union, TypeVar, Optional, Sequence, Iterable, Callable
 from collections import defaultdict
+from pprint import PrettyPrinter
 from pathlib import Path
 import warnings
 import copy
@@ -29,15 +29,13 @@ class CruiseBase(ICruise):
 
     def __init__(self, conf: CruiseConfig) -> None:
         self._conf = conf
-        self._info = dict()
-        self._info["name"] = self._conf.name
-        self._info["year"] = self._conf.year
         (
             echogram_filename,
             annotation_filename,
             bottom_filename,
             schools_filename,
         ) = self._scan_path()
+        self._info_formatter = PrettyPrinter(indent=2).pformat
         self._echogram = self._read_data(
             filename=echogram_filename,
             required=True,  # data (echogram) is always required
@@ -76,7 +74,7 @@ class CruiseBase(ICruise):
         return cls(conf)
 
     def __repr__(self) -> str:
-        return str(self.info)
+        return self._info_formatter(self.info)
 
     def _scan_path(self) -> list[str, str, str]:
         patterns = generate_data_filename_patterns(self._conf)

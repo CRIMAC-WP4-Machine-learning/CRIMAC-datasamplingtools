@@ -24,6 +24,7 @@ black = {extras = ["d"], version = "^22.12.0"}
 tqdm = "^4.64.1"
 jupyter = "^1.0.0"
 holoviews = "^1.15.4"
+pytest = "^7.2.2"
 
 [build-system]
 requires = ["poetry-core"]

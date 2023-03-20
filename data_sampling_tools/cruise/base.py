@@ -19,15 +19,15 @@ Self = TypeVar("Self", bound="CruiseBase")
 
 
 class CruiseBase(ICruise):
-    __echogram_key = "echogram"
-    __annotations_key = "annotations"
-    __bottom_key = "bottom"
-    __ping_time_key = "ping_time"
-    __range_key = "range"
+    _conf: CruiseConfig
+    _echogram: xr.Dataset
+    _annotations: xr.Dataset
+    _bottom: xr.Dataset
+    _school_boxes: dict[int, list[tuple[int, int, int, int], ...]]
+    _school_boxes_origin: SchoolBoxesOrigin
+    _info_formatter: Callable[[object], str]
 
-    def __init__(
-        self, conf: CruiseConfig, force_find_school_boxes: bool = False
-    ) -> None:
+    def __init__(self, conf: CruiseConfig) -> None:
         self._conf = conf
         self._info = dict()
         self._info["name"] = self._conf.name
@@ -39,17 +39,19 @@ class CruiseBase(ICruise):
             schools_filename,
         ) = self._scan_path()
         self._echogram = self._read_data(
-            filename=echogram_filename, required=True, data_name=self.__echogram_key
+            filename=echogram_filename,
+            required=True,  # data (echogram) is always required
+            data_name=self._conf.zarr_keys.echogram_key,
         )
         self._annotations = self._read_data(
             filename=annotation_filename,
             required=self._conf.require_annotations,
-            data_name=self.__annotations_key,
+            data_name=self._conf.zarr_keys.annotations_key,
         )
         self._bottom = self._read_data(
             filename=bottom_filename,
             required=self._conf.require_bottom,
-            data_name=self.__bottom_key,
+            data_name=self._conf.zarr_keys.bottom_key,
         )
         self._school_boxes_origin = "not available"
         if (not force_find_school_boxes) and schools_filename != "":
@@ -77,7 +79,7 @@ class CruiseBase(ICruise):
         return str(self.info)
 
     def _scan_path(self) -> list[str, str, str]:
-        patterns = generate_data_filename_patterns(self._conf.settings)
+        patterns = generate_data_filename_patterns(self._conf)
         filenames = os.listdir(self._conf.path)
         match_count = 0
         out = list()
@@ -239,22 +241,22 @@ class CruiseBase(ICruise):
         )
         cruise._echogram = cruise._echogram.isel(
             {
-                self.__range_key: slice(y1, y2),
-                self.__ping_time_key: slice(x1, x2),
+                self._conf.zarr_keys.range_key: slice(y1, y2),
+                self._conf.zarr_keys.ping_time_key: slice(x1, x2),
             }
         )
         if cruise.annotations_available:
             cruise._annotations = cruise._annotations.isel(
                 {
-                    self.__range_key: slice(y1, y2),
-                    self.__ping_time_key: slice(x1, x2),
+                    self._conf.zarr_keys.range_key: slice(y1, y2),
+                    self._conf.zarr_keys.ping_time_key: slice(x1, x2),
                 }
             )
         if cruise.bottom_available:
             cruise._bottom = cruise._bottom.isel(
                 {
-                    self.__range_key: slice(y1, y2),
-                    self.__ping_time_key: slice(x1, x2),
+                    self._conf.zarr_keys.range_key: slice(y1, y2),
+                    self._conf.zarr_keys.ping_time_key: slice(x1, x2),
                 }
             )
         return cruise
@@ -270,9 +272,11 @@ class CruiseBase(ICruise):
     def crop(self, x1: int, y1: int, x2: int, y2: int) -> dict[str, xr.Dataset]:
         res = dict()
         box = (x1, y1, x2, y2)
-        res[self.__echogram_key] = self._crop_data(self._echogram, box)
-        res[self.__annotations_key] = self._crop_data(self._annotations, box)
-        res[self.__bottom_key] = self._crop_data(self._bottom, box)
+        res[self._conf.zarr_keys.echogram_key] = self._crop_data(self._echogram, box)
+        res[self._conf.zarr_keys.annotations_key] = self._crop_data(
+            self._annotations, box
+        )
+        res[self._conf.zarr_keys.bottom_key] = self._crop_data(self._bottom, box)
         return res
 
     def _crop_data(
@@ -280,8 +284,8 @@ class CruiseBase(ICruise):
     ) -> xr.Dataset:
         return data.isel(
             {
-                self.__range_key: slice(box[1], box[3]),
-                self.__ping_time_key: slice(box[0], box[2]),
+                self._conf.zarr_keys.range_key: slice(box[1], box[3]),
+                self._conf.zarr_keys.ping_time_key: slice(box[0], box[2]),
             }
         )
 

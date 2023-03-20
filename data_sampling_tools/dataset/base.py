@@ -1,138 +1,110 @@
-from ..core import IDataset, ICruise, ISampler, ICompoundSampler
-from ..utils.dataset_config import is_valid
+from ..core import ICruiseList, IStatelessSampler, IStatefulSampler, IDataset
+from ..utils.dataset import eval_dataset_length, filter_cruise_list
 
+from pydantic import BaseModel
+import polars as pl
+import xarray as xr
 import yaml
 
-from collections import defaultdict, OrderedDict
-from typing import Sequence, Union
+from typing import Union, Optional
+from pathlib import Path
+
+
+class FilterConfig(BaseModel):
+    frequencies: list[int, ...]
+    categories: list[int, ...]
+    with_annotations_only: bool
+    with_bottom_only: bool
+    names: Optional[list[str, ...]] = None
+    years: Optional[list[int, ...]] = None
+
+
+class DatasetConfig(BaseModel):
+    filter: FilterConfig
+
+    def __init__(self, cfg: Union[str, Path]) -> None:
+        with open(cfg, "r") as f:
+            cfg_dict = yaml.load(f, yaml.FullLoader)
+        super().__init__(filter=FilterConfig(**cfg_dict.get("filter", None)))
 
 
 class BaseDataset(IDataset):
+    _cruise_list: ICruiseList
+    _filtered_cruise_list: ICruiseList
+    _sampler: Union[IStatelessSampler, IStatefulSampler]
+    _cfg: DatasetConfig
+    _pseudo_len: int
+
     def __init__(
         self,
-        cruises: Sequence[ICruise],
-        sampler: Union[ISampler, ICompoundSampler],
-        cfg: str,
-        pseudo_length: int = 1,
+        cruise_list: ICruiseList,
+        sampler: Union[IStatelessSampler, IStatefulSampler],
+        cfg: Union[str, Path],
+        pseudo_length: Optional[int] = None,
     ) -> None:
         super().__init__()
-        self._cruises = list(cruises)
-        self._sampler = sampler
-        self._pseudo_length = pseudo_length
-        self._cfg = self._load_cfg(cfg)
-        self._sampler.init(self._cfg["filters"]["categories"])
-        self._filter_conf = {
-            "name": self._cfg["filters"]["names"],
-            "year": self._cfg["filters"]["years"],
-            "categories": list(set(self._cfg["filters"]["categories"])),
-            "frequencies": list(set(self._cfg["filters"]["frequencies"])),
-            "with_annotations_only": self._cfg["filters"][
-                "with_annotations_only"
-            ],
-            "with_bottom_only": self._cfg["filters"]["with_bottom_only"],
-        }
-        self._table = dt.Frame(
-            {
-                "id": [*range(len(cruises))],
-                "path": [str(c.path) for c in cruises],
-            }
+        self._cruise_list = cruise_list
+        self._dataset_len = eval_dataset_length(
+            sampler=sampler, pseudo_length=pseudo_length
         )
-        self._summary = self._summarise(cruises)
-        self._valid_ids = self._filter()
-        (
-            self._ping_range_map,
-            self._total_num_pings,
-        ) = self._assemble_ping_range_map()
+        self._cfg = DatasetConfig(cfg)
+        self._filtered_cruise_list = filter_cruise_list(cfg=self._cfg)
+        self._sampler = sampler
+        self._sampler.full_init(cruise_list=self._filtered_cruise_list)
+
+    @property
+    def table(self) -> pl.DataFrame:
+        return self._filtered_cruise_list.table
+
+    @property
+    def cruise_list(self) -> ICruiseList:
+        return self._filtered_cruise_list
+
+    def __getitem__(self, index: int) -> dict[str, xr.Dataset]:
+        raise NotImplementedError
 
     def __len__(self) -> int:
-        return self._pseudo_length
+        return self._dataset_len
 
-    def __getitem__(self, _: any) -> dict[str, any]:
-        return self._sampler(self)
-
+    # TODO: make this actually useful
     def __repr__(self) -> str:
         return str(self._summary[self._valid_ids, :])
 
-    @staticmethod
-    def _load_cfg(cfg: str) -> dict[str, any]:
-        with open(cfg, "r") as f:
-            cfg = yaml.load(f, yaml.FullLoader)
-        if is_valid(cfg):
-            return cfg
-        else:
-            raise Exception("Invalid dataset config")
-
-    @staticmethod
-    def _summarise(cruises: Sequence[ICruise]) -> dt.Frame:
-        summary = defaultdict(list)
-        for i, c in enumerate(cruises):
-            summary["id"].append(i)
-            info = c.info
-            summary["name"].append(info["name"])
-            summary["year"].append(info["year"])
-            summary["annotations_available"].append(c.annotations_available)
-            summary["bottom_available"].append(c.bottom_available)
-            summary["num_pings"].append(c.num_pings)
-            summary["categories"].append(c.categories)
-            summary["frequencies"].append(c.frequencies)
-        return dt.Frame(
-            summary, types=[int, str, int, bool, bool, int, object, object]
-        )
-
-    def _filter(self) -> list[int, ...]:
-        table = self._summary
-        special_filters = [
-            "with_annotations_only",
-            "with_bottom_only",
-            "categories",
-            "frequencies",
-        ]
-        for key, val in self._filter_conf.items():
-            if val is None or key in special_filters:
-                continue
-            row_filter = [dt.f[key] == v for v in val]
-            table = table[row_filter, :]
-        if self._filter_conf["with_annotations_only"]:
-            table = table[dt.f["annotations_available"] == True, :]
-        if self._filter_conf["with_bottom_only"]:
-            table = table[dt.f["bottom_available"] == True, :]
-        if self._filter_conf["categories"] is not None:
-            valid_rows = list()
-            for row_idx in range(table.nrows):
-                for c in table[row_idx, "categories"]:
-                    if c in self._filter_conf["categories"]:
-                        valid_rows.append(row_idx)
-                        break
-            table = table[valid_rows, :]
-        if self._filter_conf["frequencies"] is not None:
-            valid_rows = list()
-            for row_idx in range(table.nrows):
-                next_row = False
-                for i, f in enumerate(self._filter_conf["frequencies"]):
-                    if f not in table[row_idx, "frequencies"]:
-                        next_row = True
-                        break
-                if next_row:
-                    break
-                valid_rows.append(row_idx)
-            table = table[valid_rows, :]
-        return table["id"].to_numpy().flatten().tolist()
-
-    def _assemble_ping_range_map(self) -> tuple[dict[int, int], int]:
-        ping_range_map = OrderedDict()
-        previous_ping = 0
-        for i in self._valid_ids:
-            num_pings = previous_ping + self._cruises[i].num_pings
-            ping_range_map[num_pings] = self._cruises[i].num_ranges
-            previous_ping = num_pings
-        return ping_range_map, previous_ping
-
-    def schools(
-        self, cruise_idx: int, fish_category: int
-    ) -> list[tuple[int, int, int, int], ...]:
-        return self._cruises[cruise_idx].school_boxes[fish_category]
-
-    def crop(
-        self, cruise_idx: int, box: list[int, int, int, int]
-    ) -> dict[str, xr.Dataset]:
-        return self._cruises[cruise_idx].crop(*box)
+    # def _filter(self) -> list[int, ...]:
+    #     table = self._summary
+    #     special_filters = [
+    #         "with_annotations_only",
+    #         "with_bottom_only",
+    #         "categories",
+    #         "frequencies",
+    #     ]
+    #     for key, val in self._filter_conf.items():
+    #         if val is None or key in special_filters:
+    #             continue
+    #         row_filter = [dt.f[key] == v for v in val]
+    #         table = table[row_filter, :]
+    #     if self._filter_conf["with_annotations_only"]:
+    #         table = table[dt.f["annotations_available"] == True, :]
+    #     if self._filter_conf["with_bottom_only"]:
+    #         table = table[dt.f["bottom_available"] == True, :]
+    #     if self._filter_conf["categories"] is not None:
+    #         valid_rows = list()
+    #         for row_idx in range(table.nrows):
+    #             for c in table[row_idx, "categories"]:
+    #                 if c in self._filter_conf["categories"]:
+    #                     valid_rows.append(row_idx)
+    #                     break
+    #         table = table[valid_rows, :]
+    #     if self._filter_conf["frequencies"] is not None:
+    #         valid_rows = list()
+    #         for row_idx in range(table.nrows):
+    #             next_row = False
+    #             for i, f in enumerate(self._filter_conf["frequencies"]):
+    #                 if f not in table[row_idx, "frequencies"]:
+    #                     next_row = True
+    #                     break
+    #             if next_row:
+    #                 break
+    #             valid_rows.append(row_idx)
+    #         table = table[valid_rows, :]
+    #     return table["id"].to_numpy().flatten().tolist()

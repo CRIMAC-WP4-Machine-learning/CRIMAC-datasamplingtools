@@ -108,7 +108,7 @@ class ICruise(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def school_boxes_origin(self) -> str:
+    def school_boxes_origin(self) -> SchoolBoxesOrigin:
         raise NotImplementedError
 
     @property
@@ -248,4 +248,4 @@ class ICruiseList(
         raise NotImplementedError
 
 
-__all__ = ["ICruise", "ICruiseList"]
+__all__ = ["ICruise", "ICruiseList", "SchoolBoxesOrigin"]

@@ -1,9 +1,47 @@
+from .. import CONFIG, ModuleConfig
 from ..core.cruise import ICruise
 
+from pydantic import BaseModel, validator
 import polars as pl
 
-from typing import Sequence
+from typing import Sequence, Optional
+from pathlib import Path
 import math as m
+import re
+
+
+class ZARRKeys(BaseModel):
+    echogram_key: str = "echogram"
+    annotations_key: str = "annotations"
+    bottom_key: str = "bottom"
+    ping_time_key: str = "ping_time"
+    range_key: str = "range"
+
+
+class CruiseConfig(BaseModel):
+    path: Path
+    require_annotations: bool
+    require_bottom: bool
+    force_find_school_boxes: bool = False
+    settings: ModuleConfig = CONFIG
+    zarr_keys: ZARRKeys = ZARRKeys()
+    name: Optional[str] = None
+    year: Optional[int] = None
+    # TODO: add the features below one day...
+    # mask_bottom: bool
+    # bottom_mask_values: float
+    # trim_zeros: bool
+    # annotation_post_filter_cycles: int = 0 # Erosion-dilation cycles
+
+    @validator("path")
+    def valid_path(cls, val: Path) -> Path:
+        if val.exists():
+            if val.is_dir():
+                return val
+            else:
+                raise ValueError(f"{val} is not a directory")
+        else:
+            raise ValueError(f"{val} doesn't exist")
 
 
 def parse_cruises(

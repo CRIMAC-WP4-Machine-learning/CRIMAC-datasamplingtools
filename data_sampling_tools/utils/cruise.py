@@ -68,4 +68,23 @@ def parse_cruises(
     )
 
 
-__all__ = ["parse_cruises"]
+def generate_data_filename_patterns(
+    config: CruiseConfig,
+) -> list[re.Pattern, re.Pattern, re.Pattern]:
+    out = list()
+    for k, v in config.settings:
+        if k.endswith("_suffix"):
+            if v.endswith("csv"):
+                pattern = rf".*_{v}"
+            else:
+                pattern = rf".*_{v}(\.zarr)$"
+            out.append(re.compile(pattern))
+    return out
+
+
+__all__ = [
+    "parse_cruises",
+    "generate_data_filename_patterns",
+    "ZARRKeys",
+    "CruiseConfig",
+]

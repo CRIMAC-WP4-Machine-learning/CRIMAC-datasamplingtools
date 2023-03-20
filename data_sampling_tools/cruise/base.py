@@ -1,8 +1,6 @@
-from ..utils.patterns import generate_data_filename_patterns
-from ..utils.module_config import module_cfg_is_valid
-from ..utils.cruise import parse_cruises
-from ..core import ICruise, ICruiseList
-from .. import CONFIG
+from ..utils.cruise import parse_cruises, generate_data_filename_patterns, CruiseConfig
+from ..core import ICruise, ICruiseList, SchoolBoxesOrigin
+from ..utils.box import box_contains
 
 import polars as pl
 import xarray as xr
@@ -18,37 +16,6 @@ import os
 
 
 Self = TypeVar("Self", bound="CruiseBase")
-
-
-@dataclass(init=False)
-class CruiseConfig:
-    path: Path = MISSING
-    settings: dict[str, any]
-    name: str
-    year: int
-    require_annotations: bool
-    require_bottom: bool
-
-    def __init__(
-        self,
-        path: Union[str, Path],
-        name: Optional[str] = None,
-        year: Optional[int] = None,
-        require_annotations: bool = False,
-        require_bottom: bool = False,
-        settings: Optional[dict[str, any]] = None,
-    ) -> None:
-        self.path = Path(path)
-        self.name = name
-        self.year = year
-        self.require_annotations = require_annotations
-        self.require_bottom = require_bottom
-        if settings is not None:
-            merged_settings = CONFIG | settings
-            if module_cfg_is_valid(merged_settings):
-                self.settings = merged_settings
-        else:
-            self.settings = CONFIG
 
 
 class CruiseBase(ICruise):

@@ -35,6 +35,7 @@ class NewTestClass(ITestClass):
     def __init__(self):
         self.x = [1, 2, 3]
 
+
 class INewTestClass(ITestClass):
     @classmethod
     def __subclasshook__(cls, subclass) -> Union[bool, type(NotImplemented)]:

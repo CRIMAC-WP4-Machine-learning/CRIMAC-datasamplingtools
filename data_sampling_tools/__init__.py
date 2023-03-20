@@ -1,4 +1,4 @@
-from .utils.module_config import module_cfg_is_valid
+# from .utils.module_config import module_cfg_is_valid
 
 from pydantic import BaseModel
 import yaml
@@ -26,11 +26,13 @@ with open(_default_config_path, "r") as f:
 if os.path.exists(_user_config_path):
     with open(_user_config_path, "r") as f:
         _user_config = ModuleConfig(**yaml.load(f, yaml.FullLoader))
+        _merged_config = {k: v for k, v in _default_config}
         for key, val in _user_config:
             if val is not None:
-                _default_config.__setattr__(key, val)
-
-CONFIG = _default_config
+                _merged_config[key] = val
+    CONFIG = ModuleConfig(**_merged_config)
+else:
+    CONFIG = _default_config
 
 del (
     _self_path,

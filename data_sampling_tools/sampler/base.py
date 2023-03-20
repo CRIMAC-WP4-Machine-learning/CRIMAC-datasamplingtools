@@ -172,8 +172,9 @@ class BaseGriddedSampler(IStatefulSampler):
         return self[kwargs.get("index", self._global_iter_count)]
 
 
-class BaseStrideSampler(IStatefulSampler):
-    pass
+# TODO: finish this sampler one day
+# class BaseStrideSampler(IStatefulSampler):
+#     pass
 
 
 __all__ =["BaseCompoundRandomSampler", "BaseRandomSampler", "BaseGriddedSampler"]

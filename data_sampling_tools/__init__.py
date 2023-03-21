@@ -8,9 +8,9 @@ import os
 
 
 class ModuleConfig(BaseModel):
-    survey_suffix: str
+    echogram_suffix: str
     bottom_suffix: str
-    labels_suffix: str
+    annotation_suffix: str
     schools_suffix: str
 
 

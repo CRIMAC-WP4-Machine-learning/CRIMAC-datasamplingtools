@@ -1,5 +1,5 @@
 # # # Namings # # #
-survey_suffix: "sv"
+echogram_suffix: "sv"
 bottom_suffix: "bottom"
-labels_suffix: "labels"
+annotation_suffix: "labels"
 schools_suffix: "labels.parquet.csv"

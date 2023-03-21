@@ -1,4 +1,4 @@
-from ..core import IStatelessSampler, IStatefulSampler, ICruiseList
+from ..core import IStatelessSampler, IStatefulSampler
 
 from typing import Union, Optional
 
@@ -16,8 +16,4 @@ def eval_dataset_length(
     return length
 
 
-def filter_cruise_list(cfg: dict[str, any]) -> ICruiseList:
-    pass
-
-
-__all__ = ["eval_dataset_length", "filter_cruise_list"]
+__all__ = ["eval_dataset_length"]

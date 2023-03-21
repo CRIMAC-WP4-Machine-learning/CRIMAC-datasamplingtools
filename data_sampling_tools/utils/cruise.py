@@ -108,15 +108,15 @@ def parse_cruises(
 
 def generate_data_filename_patterns(
     config: CruiseConfig,
-) -> list[re.Pattern, re.Pattern, re.Pattern]:
-    out = list()
+) -> dict[str, re.Pattern]:
+    out = dict()
     for k, v in config.settings:
         if k.endswith("_suffix"):
             if v.endswith("csv"):
                 pattern = rf".*_{v}"
             else:
                 pattern = rf".*_{v}(\.zarr)$"
-            out.append(re.compile(pattern))
+            out[k.split("_")[0]] = re.compile(pattern)
     return out
 
 

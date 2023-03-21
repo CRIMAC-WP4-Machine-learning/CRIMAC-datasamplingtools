@@ -3,6 +3,7 @@ from ..utils.cruise import (
     generate_data_filename_patterns,
     CruiseConfig,
     box_contains,
+    filter_cruise_table,
 )
 from ..core import ICruise, ICruiseList, SchoolBoxesOrigin, FilterConfig
 
@@ -31,31 +32,26 @@ class CruiseBase(ICruise):
 
     def __init__(self, conf: CruiseConfig) -> None:
         self._conf = conf
-        (
-            echogram_filename,
-            annotation_filename,
-            bottom_filename,
-            schools_filename,
-        ) = self._scan_path()
+        filenames = self._scan_path()
         self._info_formatter = PrettyPrinter(indent=2).pformat
         self._echogram = self._read_data(
-            filename=echogram_filename,
+            filename=filenames["echogram"],
             required=True,  # data (echogram) is always required
             data_name=self._conf.zarr_keys.echogram_key,
         )
         self._annotations = self._read_data(
-            filename=annotation_filename,
+            filename=filenames["annotation"],
             required=self._conf.require_annotations,
             data_name=self._conf.zarr_keys.annotations_key,
         )
         self._bottom = self._read_data(
-            filename=bottom_filename,
+            filename=filenames["bottom"],
             required=self._conf.require_bottom,
             data_name=self._conf.zarr_keys.bottom_key,
         )
         self._school_boxes_origin = SchoolBoxesOrigin.NOT_AVAILABLE
-        if (not self._conf.force_find_school_boxes) and schools_filename != "":
-            self._school_boxes = self._load_school_boxes(schools_filename)
+        if (not self._conf.force_find_school_boxes) and filenames["schools"] != "":
+            self._school_boxes = self._load_school_boxes(filenames["schools"])
             self._school_boxes_origin = SchoolBoxesOrigin.CSV
         else:
             self._school_boxes = self._find_school_boxes()
@@ -78,19 +74,19 @@ class CruiseBase(ICruise):
     def __repr__(self) -> str:
         return self._info_formatter(self.info)
 
-    def _scan_path(self) -> list[str, str, str]:
+    def _scan_path(self) -> dict[str, str]:
         patterns = generate_data_filename_patterns(self._conf)
         filenames = os.listdir(self._conf.path)
         match_count = 0
-        out = list()
-        for p in patterns:
+        out = dict()
+        for k, p in patterns.items():
             for name in filenames:
                 if p.fullmatch(name):
-                    out.append(name)
+                    out[k] = name
                     break
             match_count += 1
             if match_count != len(out):
-                out.append("")
+                out[k] = ""
         return out
 
     def _read_data(self, filename: str, required: bool, data_name: str) -> xr.Dataset:

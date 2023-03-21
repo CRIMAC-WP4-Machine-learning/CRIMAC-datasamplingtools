@@ -44,6 +44,15 @@ class CruiseConfig(BaseModel):
             raise ValueError(f"{val} doesn't exist")
 
 
+# TODO: filtering logic goes here...
+def filter_cruise_table(
+    cruise_table: pl.DataFrame, filter_conf: FilterConfig
+) -> pl.DataFrame:
+    for col, val in filter_conf:
+        pass
+    pass
+
+
 def parse_cruises(
     cruises: Sequence[ICruise],
 ) -> tuple[

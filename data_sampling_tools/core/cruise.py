@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 import polars as pl
 import xarray as xr
 
@@ -15,6 +16,16 @@ class SchoolBoxesOrigin(Enum):
     NOT_AVAILABLE = 1
     CSV = 2
     CONTOUR_SEARCH = 3
+
+
+# TODO: encode logic coupled with each field
+class FilterConfig(BaseModel):
+    frequencies: list[int, ...]
+    categories: list[int, ...]
+    with_annotations_only: bool
+    with_bottom_only: bool
+    names: Optional[list[str, ...]] = None
+    years: Optional[list[int, ...]] = None
 
 
 class ICruise(metaclass=abc.ABCMeta):

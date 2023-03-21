@@ -62,7 +62,7 @@ def parse_cruises(
         "name": pl.Utf8,
         "year": pl.UInt16,
         "index": pl.UInt16,
-        "category": pl.UInt8,
+        "category": pl.UInt16,
         "frequencies": pl.List(pl.UInt32),
         "full_path": pl.Utf8,
     }
@@ -85,11 +85,19 @@ def parse_cruises(
         max_range_len = max(max_range_len, cruise.num_ranges)
         frequencies.extend(cruise.frequencies)
         categories.extend(cruise.categories)
-        for category in cruise.categories:
+        if cruise.annotations_available:
+            for category in cruise.categories:
+                name_col.append(cruise.info["name"])
+                year_col.append(cruise.info["year"])
+                index_col.append(i)
+                category_col.append(category)
+                frequencies_col.append(cruise.frequencies)
+                full_path_col.append(str(cruise.path))
+        else:
             name_col.append(cruise.info["name"])
             year_col.append(cruise.info["year"])
             index_col.append(i)
-            category_col.append(category)
+            category_col.append(None)
             frequencies_col.append(cruise.frequencies)
             full_path_col.append(str(cruise.path))
     cruise_ping_fractions = [*map(lambda x: x / total_num_pings, cruise_ping_fractions)]

@@ -1,5 +1,11 @@
-from ..core import ICruiseList, IStatelessSampler, IStatefulSampler, IDataset
-from ..utils.dataset import eval_dataset_length, filter_cruise_list
+from ..core import (
+    ICruiseList,
+    IStatelessSampler,
+    IStatefulSampler,
+    IDataset,
+    FilterConfig,
+)
+from ..utils.dataset import eval_dataset_length
 
 from pydantic import BaseModel
 import polars as pl
@@ -8,15 +14,6 @@ import yaml
 
 from typing import Union, Optional
 from pathlib import Path
-
-
-class FilterConfig(BaseModel):
-    frequencies: list[int, ...]
-    categories: list[int, ...]
-    with_annotations_only: bool
-    with_bottom_only: bool
-    names: Optional[list[str, ...]] = None
-    years: Optional[list[int, ...]] = None
 
 
 class DatasetConfig(BaseModel):

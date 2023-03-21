@@ -1,12 +1,14 @@
+from ...utils.cruise import CruiseConfig
 from ..base import CruiseBase
 
-from ...utils.cruise import CruiseConfig
+import pytest
 
 from pathlib import Path
 import os
 
 
 # Shared test data
+# Normal cruise with bottom and annotation
 base_path = Path(os.path.abspath(__file__)).parent.parent.parent.parent
 valid_cruise_path = base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED"
 valid_cruise_config_kwargs = {
@@ -20,6 +22,47 @@ valid_cruise_config = CruiseConfig(**valid_cruise_config_kwargs)
 first_school_box = [0, 1826, 12164, 2471]
 school_category = 24
 crop_window = (1000, 1000, 3000, 2000)
+
+# Normal cruise but without annotation
+no_annot_cruise_path = (
+    base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED_WITHOUT_ANNOTATION"
+)
+no_annot_cruise_config_kwargs = {
+    "path": no_annot_cruise_path,
+    "require_annotations": False,
+    "require_bottom": True,
+    "name": "SCH72_2019241",
+    "year": 2019,
+}
+no_annot_cruise_config = CruiseConfig(**no_annot_cruise_config_kwargs)
+
+# Normal cruise but without bottom
+no_bottom_cruise_path = (
+    base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED_WITHOUT_BOTTOM"
+)
+no_bottom_cruise_config_kwargs = {
+    "path": no_bottom_cruise_path,
+    "require_annotations": True,
+    "require_bottom": False,
+    "name": "SCH72_2019241",
+    "year": 2019,
+}
+no_bottom_cruise_config = CruiseConfig(**no_bottom_cruise_config_kwargs)
+
+# Normal cruise but without bottom and annotation
+no_bottom_no_annot_cruise_path = (
+    base_path / "data/2019/SCH72_2019241/ACOUSTIC/GRIDDED_WITHOUT_BOTTOM_AND_ANNOTATION"
+)
+no_bottom_no_annot_cruise_config_kwargs = {
+    "path": no_bottom_no_annot_cruise_path,
+    "require_annotations": False,
+    "require_bottom": False,
+    "name": "SCH72_2019241",
+    "year": 2019,
+}
+no_bottom_no_annot_cruise_config = CruiseConfig(
+    **no_bottom_no_annot_cruise_config_kwargs
+)
 
 
 class TestCruiseBase:
@@ -132,3 +175,31 @@ class TestCruiseBase:
         for _, v in cropped.items():
             assert v.dims["ping_time"] == len_pings
             assert v.dims["range"] == len_ranges
+
+    def test_eleven(self) -> None:
+        """Cruise without annotation."""
+        _ = CruiseBase(conf=no_annot_cruise_config)
+
+    def test_twelve(self) -> None:
+        """Cruise without bottom."""
+        _ = CruiseBase(conf=no_bottom_cruise_config)
+
+    def test_thirteen(self) -> None:
+        """Cruise with neither bottom nor annotation."""
+        _ = CruiseBase(conf=no_bottom_no_annot_cruise_config)
+
+    def test_fourteen(self) -> None:
+        """Cruise without annotation, but it is required."""
+        custom_config_kwargs = dict(no_annot_cruise_config)
+        custom_config_kwargs["require_annotations"] = True
+        custom_config = CruiseConfig(**custom_config_kwargs)
+        with pytest.raises(FileNotFoundError):
+            _ = CruiseBase(conf=custom_config)
+
+    def test_fifteen(self) -> None:
+        """Cruise without bottom, but it is required."""
+        custom_config_kwargs = dict(no_bottom_cruise_config)
+        custom_config_kwargs["require_bottom"] = True
+        custom_config = CruiseConfig(**custom_config_kwargs)
+        with pytest.raises(FileNotFoundError):
+            _ = CruiseBase(conf=custom_config)

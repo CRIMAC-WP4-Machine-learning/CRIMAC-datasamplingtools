@@ -241,7 +241,10 @@ class CruiseBase(ICruise):
         except AssertionError:
             raise ValueError("Inconsistent box dimensions")
         new_conf_dict = dict(self._conf)
-        new_conf_dict["name"] += f"-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
+        try:
+            new_conf_dict["name"] += f"-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
+        except TypeError:
+            new_conf_dict["name"] = f"unnamed-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
         cruise = self._from_box(conf=CruiseConfig(**new_conf_dict))
         cruise._echogram = cruise._echogram.isel(
             {
@@ -264,23 +267,24 @@ class CruiseBase(ICruise):
                 }
             )
         new_school_boxes = list()
-        for box in cruise._school_boxes[category]:
-            contained_box = box_contains(
-                domain_box=tuple([x1, y1, x2, y2]), other_box=box
-            )
-            if len(contained_box) == 4:
-                new_box = tuple(
-                    [
-                        contained_box[0] - x1,
-                        contained_box[1] - y1,
-                        contained_box[2] - x1,
-                        contained_box[3] - y1,
-                    ]
+        if cruise.annotations_available:
+            for box in cruise._school_boxes[category]:
+                contained_box = box_contains(
+                    domain_box=tuple([x1, y1, x2, y2]), other_box=box
                 )
-                new_school_boxes.append(new_box)
-            else:
-                continue
-        cruise._school_boxes = {category: new_school_boxes}
+                if len(contained_box) == 4:
+                    new_box = tuple(
+                        [
+                            contained_box[0] - x1,
+                            contained_box[1] - y1,
+                            contained_box[2] - x1,
+                            contained_box[3] - y1,
+                        ]
+                    )
+                    new_school_boxes.append(new_box)
+                else:
+                    continue
+            cruise._school_boxes = {category: new_school_boxes}
         return cruise
 
     @classmethod

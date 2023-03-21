@@ -155,4 +155,5 @@ __all__ = [
     "ZARRKeys",
     "CruiseConfig",
     "box_contains",
+    "filter_cruise_table",
 ]

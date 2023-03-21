@@ -18,10 +18,9 @@ import warnings
 import os
 
 
-Self = TypeVar("Self", bound="CruiseBase")
-
-
 class CruiseBase(ICruise):
+    Self = TypeVar("Self", bound="CruiseBase")
+
     _conf: CruiseConfig
     _echogram: xr.Dataset
     _annotations: xr.Dataset
@@ -314,6 +313,8 @@ class CruiseBase(ICruise):
 
 
 class CruiseListBase(ICruiseList):
+    Self = TypeVar("Self", bound="CruiseListBase")
+
     def __init__(self, cruises: Sequence[ICruise]):
         self._cruises = tuple(cruises)
         (

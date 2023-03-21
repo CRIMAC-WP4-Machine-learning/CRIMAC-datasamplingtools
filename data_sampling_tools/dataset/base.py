@@ -45,7 +45,7 @@ class BaseDataset(IDataset):
             sampler=sampler, pseudo_length=pseudo_length
         )
         self._cfg = DatasetConfig(cfg)
-        self._filtered_cruise_list = filter_cruise_list(cfg=self._cfg)
+        self._filtered_cruise_list = None
         self._sampler = sampler
         self._sampler.full_init(cruise_list=self._filtered_cruise_list)
 

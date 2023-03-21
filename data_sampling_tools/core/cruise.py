@@ -9,9 +9,6 @@ import collections.abc
 import abc
 
 
-Self = TypeVar("Self", bound="ICruise")
-
-
 class SchoolBoxesOrigin(Enum):
     NOT_AVAILABLE = 1
     CSV = 2
@@ -29,6 +26,8 @@ class FilterConfig(BaseModel):
 
 
 class ICruise(metaclass=abc.ABCMeta):
+    Self = TypeVar("Self", bound="ICruise")
+
     @classmethod
     def __subclasshook__(cls, subclass) -> Union[bool, type(NotImplemented)]:
         return (
@@ -171,6 +170,8 @@ class ICruise(metaclass=abc.ABCMeta):
 class ICruiseList(
     collections.abc.Iterable, collections.abc.Sized, metaclass=abc.ABCMeta
 ):
+    Self = TypeVar("Self", bound="ICruiseList")
+
     @classmethod
     def __subclasshook__(cls, subclass) -> Union[bool, type(NotImplemented)]:
         return (
@@ -192,6 +193,8 @@ class ICruiseList(
             and callable(subclass.categories)
             and hasattr(subclass, "frequencies")
             and callable(subclass.frequencies)
+            and hasattr(subclass, "from_filter")
+            and callable(subclass.from_filter)
             and hasattr(subclass, "school_boxes")
             and callable(subclass.school_boxes)
             and hasattr(subclass, "crop")
@@ -259,4 +262,4 @@ class ICruiseList(
         raise NotImplementedError
 
 
-__all__ = ["ICruise", "ICruiseList", "SchoolBoxesOrigin"]
+__all__ = ["ICruise", "ICruiseList", "SchoolBoxesOrigin", "FilterConfig"]

@@ -252,6 +252,11 @@ class ICruiseList(
         raise NotImplementedError
 
     @abc.abstractmethod
+    def from_filter(self, filter_conf: FilterConfig) -> Self:
+        """Creates new object based on filter."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def school_boxes(
         self, cruise_idx: int, fish_category: Optional[int] = None
     ) -> dict[int, list[tuple[int, int, int, int], ...]]:

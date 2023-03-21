@@ -1,5 +1,5 @@
+from ..core.cruise import ICruise, FilterConfig
 from .. import CONFIG, ModuleConfig
-from ..core.cruise import ICruise
 
 from pydantic import BaseModel, validator
 import polars as pl

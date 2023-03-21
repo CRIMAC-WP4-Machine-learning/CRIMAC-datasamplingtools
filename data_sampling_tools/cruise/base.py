@@ -4,7 +4,7 @@ from ..utils.cruise import (
     CruiseConfig,
     box_contains,
 )
-from ..core import ICruise, ICruiseList, SchoolBoxesOrigin
+from ..core import ICruise, ICruiseList, SchoolBoxesOrigin, FilterConfig
 
 import polars as pl
 import xarray as xr

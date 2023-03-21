@@ -17,7 +17,7 @@ valid_cruise_config_kwargs = {
     "year": 2019,
 }
 valid_cruise_config = CruiseConfig(**valid_cruise_config_kwargs)
-first_school_box = [8233, 1826, 12163, 2471]
+first_school_box = [0, 1826, 12164, 2471]
 school_category = 24
 crop_window = (1000, 1000, 3000, 2000)
 
@@ -40,12 +40,12 @@ class TestCruiseBase:
         """Instantiate from box and check for correct school boxes crop."""
         cruise = CruiseBase(conf=valid_cruise_config)
         new_cruise = cruise.from_box(
-            x1=8000, y1=1000, x2=13000, y2=3000, category=school_category
+            x1=0, y1=1000, x2=13000, y2=3000, category=school_category
         )
         new_school_boxes = new_cruise.school_boxes[school_category]
         assert len(new_school_boxes) == 1
         new_school_box = new_school_boxes[0]
-        target_school_box = (233, 826, 4163, 1471)
+        target_school_box = (0, 826, 12164, 1471)
         assert new_school_box == target_school_box
 
     def test_five(self) -> None:
@@ -60,7 +60,7 @@ class TestCruiseBase:
         new_school_boxes = new_cruise.school_boxes[school_category]
         assert len(new_school_boxes) == 1
         new_school_box = new_school_boxes[0]
-        target_school_box = (0, 826, 3163, 1471)
+        target_school_box = (0, 826, 3164, 1471)
         assert new_school_box == target_school_box
 
     def test_six(self) -> None:
@@ -75,7 +75,7 @@ class TestCruiseBase:
         new_school_boxes = new_cruise.school_boxes[school_category]
         assert len(new_school_boxes) == 1
         new_school_box = new_school_boxes[0]
-        target_school_box = (233, 0, 4163, 471)
+        target_school_box = (0, 0, 4164, 471)
         assert new_school_box == target_school_box
 
     def test_seven(self) -> None:
@@ -90,7 +90,7 @@ class TestCruiseBase:
         new_school_boxes = new_cruise.school_boxes[school_category]
         assert len(new_school_boxes) == 1
         new_school_box = new_school_boxes[0]
-        target_school_box = (233, 826, 2000, 1471)
+        target_school_box = (0, 826, 2000, 1471)
         assert new_school_box == target_school_box
 
     def test_eight(self) -> None:
@@ -105,7 +105,7 @@ class TestCruiseBase:
         new_school_boxes = new_cruise.school_boxes[school_category]
         assert len(new_school_boxes) == 1
         new_school_box = new_school_boxes[0]
-        target_school_box = (233, 826, 4163, 1000)
+        target_school_box = (0, 826, 4164, 1000)
         assert new_school_box == target_school_box
 
     def test_nine(self) -> None:

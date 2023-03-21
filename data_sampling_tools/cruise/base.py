@@ -372,6 +372,13 @@ class CruiseListBase(ICruiseList):
     def frequencies(self) -> tuple[int, ...]:
         return self._frequencies
 
+    def from_filter(self, filter_conf: FilterConfig) -> Self:
+        new_cruise_list = CruiseListBase(cruises=self._cruises)
+        new_cruise_list._table = filter_cruise_table(
+            cruise_table=new_cruise_list.table, filter_conf=filter_conf
+        )
+        return new_cruise_list
+
     def school_boxes(
         self, cruise_idx: int, fish_category: Optional[int] = None
     ) -> Union[

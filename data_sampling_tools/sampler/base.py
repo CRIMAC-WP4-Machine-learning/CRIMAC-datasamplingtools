@@ -1,5 +1,5 @@
 from ..core.sampler import IStatelessSampler, IStatefulSampler, SamplerItem
-from ..utils.samplers import count_grid_cells
+from ..utils.sampler import count_grid_cells
 from ..core.cruise import ICruiseList
 
 import numpy as np

@@ -31,7 +31,9 @@ class CruiseConfig(BaseModel):
     # mask_bottom: bool
     # bottom_mask_values: float
     # trim_zeros: bool
-    # annotation_post_filter_cycles: int = 0 # Erosion-dilation cycles
+    # annotation_post_filter_cycles: int = 0 # Open-Close cycles
+    # trim_bottom: bool
+    # ...
 
     @validator("path")
     def valid_path(cls, val: Path) -> Path:
@@ -46,9 +48,11 @@ class CruiseConfig(BaseModel):
 
 # TODO: filtering logic goes here...
 def filter_cruise_table(
-    cruise_table: pl.DataFrame, filter_conf: FilterConfig
+    cruise_table: pl.DataFrame, filter_conf: FilterConfig, mode: str
 ) -> pl.DataFrame:
+    mode_filter = filter_conf.mode_filters[mode]
     for col, val in filter_conf:
+
         pass
     pass
 

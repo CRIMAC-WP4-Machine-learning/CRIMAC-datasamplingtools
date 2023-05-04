@@ -15,14 +15,17 @@ class SchoolBoxesOrigin(Enum):
     CONTOUR_SEARCH = 3
 
 
-# TODO: encode logic coupled with each field
+class _ModeFilterConfig(BaseModel):
+    names: Optional[list[str, ...]] = None
+    years: Optional[list[int, ...]] = None
+    with_annotations_only: Optional[bool] = False
+    with_bottom_only: Optional[bool] = False
+
+
 class FilterConfig(BaseModel):
     frequencies: list[int, ...]
     categories: list[int, ...]
-    with_annotations_only: bool
-    with_bottom_only: bool
-    names: Optional[list[str, ...]] = None
-    years: Optional[list[int, ...]] = None
+    mode_filters: dict[str, _ModeFilterConfig]
 
 
 class ICruise(metaclass=abc.ABCMeta):
@@ -252,7 +255,7 @@ class ICruiseList(
         raise NotImplementedError
 
     @abc.abstractmethod
-    def from_filter(self, filter_conf: FilterConfig) -> Self:
+    def from_filter(self, filter_conf: FilterConfig, mode: str) -> Self:
         """Creates new object based on filter."""
         raise NotImplementedError
 

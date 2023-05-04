@@ -16,18 +16,37 @@ filter:
   # Notes: selects cruises that have AT LEAST ONE of the mentioned categories.
   categories: [24]
 
-  # Type: list[str, ...]
-  # Notes: if specified, all cruises with None for `name` are excluded
-  names: null
+  # Mode filters; this filter is available under "train" key; see examples to learn more
+  train:
+    # Type: list[str, ...]
+    # Notes: if specified, all cruises with None for `name` are excluded
+    names: null
 
-  # Type: list[int, ...]
-  # Notes: if specified, all cruises with None for `year` are excluded
-  years: null
+    # Type: list[int, ...]
+    # Notes: if specified, all cruises with None for `year` are excluded
+    years: null
 
-  # Type: bool
-  # Notes: ...
-  with_annotations_only: True
+    # Type: bool
+    # Notes: ...
+    with_annotations_only: True
 
-  # Type: bool
-  # Notes: ...
-  with_bottom_only: False
+    # Type: bool
+    # Notes: ...
+    with_bottom_only: False
+
+  mode_name:
+    # Type: list[str, ...]
+    # Notes: if specified, all cruises with None for `name` are excluded
+    names: null
+
+    # Type: list[int, ...]
+    # Notes: if specified, all cruises with None for `year` are excluded
+    years: null
+
+    # Type: bool
+    # Notes: ...
+    with_annotations_only: True
+
+    # Type: bool
+    # Notes: ...
+    with_bottom_only: False

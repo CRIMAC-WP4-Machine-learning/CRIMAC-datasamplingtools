@@ -139,7 +139,7 @@ class CruiseBase(ICruise):
     ) -> dict[int, list[tuple[int, int, int, int], ...]]:
         if not self.annotations_available:
             return dict()
-        schools = pl.read_csv(file=self._conf.path / filepath, has_header=True)
+        schools = pl.read_csv(source=self._conf.path / filepath, has_header=True)
         schools = schools.filter(
             (pl.col("category") > 0)
             & (pl.col("startpingindex") >= 0)

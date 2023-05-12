@@ -1,5 +1,6 @@
 # # # Namings # # #
-echogram_suffix: "sv"
-bottom_suffix: "bottom"
-annotation_suffix: "labels"
-schools_suffix: "labels.parquet.csv"
+cruise_namings:
+  echogram_suffix: "sv"
+  bottom_suffix: "bottom"
+  annotation_suffix: "labels"
+  schools_suffix: "labels.parquet.csv"

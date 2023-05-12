@@ -16,6 +16,8 @@ class IDataset(collections.abc.Sized, metaclass=abc.ABCMeta):
             and callable(subclass.table)
             and hasattr(subclass, "cruise_list")
             and callable(subclass.cruise_list)
+            and hasattr(subclass, "__getitem__")
+            and callable(subclass.__getitem__)
             or NotImplemented
         )
 

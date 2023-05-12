@@ -1,4 +1,4 @@
-from ..core import CruiseConfig
+from ..models import CruiseConfig
 
 from pydantic import ValidationError
 import pytest

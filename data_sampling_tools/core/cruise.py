@@ -1,4 +1,4 @@
-from .core import SchoolBoxesOrigin, FilterConfig
+from .models import SchoolBoxesOrigin, FilterConfig
 
 import polars as pl
 import xarray as xr

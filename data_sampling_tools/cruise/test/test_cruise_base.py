@@ -1,4 +1,4 @@
-from ...utils.cruise import CruiseConfig
+from ...core import CruiseConfig
 from ..base import CruiseBase
 
 import pytest

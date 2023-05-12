@@ -1,6 +1,6 @@
 from ..base import CruiseBase, CruiseListBase
 
-from ...core.core import CruiseConfig
+from ...core import CruiseConfig
 
 import pytest
 

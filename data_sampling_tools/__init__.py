@@ -1,17 +1,8 @@
-# from .utils.module_config import module_cfg_is_valid
-
-from pydantic import BaseModel
+from .module_config import ModuleConfig
 import yaml
 
 from pathlib import Path
 import os
-
-
-class ModuleConfig(BaseModel):
-    echogram_suffix: str
-    bottom_suffix: str
-    annotation_suffix: str
-    schools_suffix: str
 
 
 _self_path = Path(__file__)
@@ -26,11 +17,7 @@ with open(_default_config_path, "r") as f:
 if os.path.exists(_user_config_path):
     with open(_user_config_path, "r") as f:
         _user_config = ModuleConfig(**yaml.load(f, yaml.FullLoader))
-        _merged_config = {k: v for k, v in _default_config}
-        for key, val in _user_config:
-            if val is not None:
-                _merged_config[key] = val
-    CONFIG = ModuleConfig(**_merged_config)
+        CONFIG = _default_config.merge(_user_config)
 else:
     CONFIG = _default_config
 

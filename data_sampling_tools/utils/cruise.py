@@ -1,49 +1,10 @@
-from ..core.cruise import ICruise, FilterConfig
-from .. import CONFIG, ModuleConfig
+from ..core import ICruise, FilterConfig, CruiseConfig
 
-from pydantic import BaseModel, validator
 import polars as pl
 
-from typing import Sequence, Optional
-from pathlib import Path
+from typing import Sequence
 import math as m
 import re
-
-
-class ZARRKeys(BaseModel):
-    echogram_key: str = "echogram"
-    annotations_key: str = "annotations"
-    bottom_key: str = "bottom"
-    ping_time_key: str = "ping_time"
-    range_key: str = "range"
-
-
-class CruiseConfig(BaseModel):
-    path: Path
-    require_annotations: bool
-    require_bottom: bool
-    force_find_school_boxes: bool = False
-    settings: ModuleConfig = CONFIG
-    zarr_keys: ZARRKeys = ZARRKeys()
-    name: Optional[str] = None
-    year: Optional[int] = None
-    # TODO: add the features below one day...
-    # mask_bottom: bool
-    # bottom_mask_values: float
-    # trim_zeros: bool
-    # annotation_post_filter_cycles: int = 0 # Open-Close cycles
-    # trim_bottom: bool
-    # ...
-
-    @validator("path")
-    def valid_path(cls, val: Path) -> Path:
-        if val.exists():
-            if val.is_dir():
-                return val
-            else:
-                raise ValueError(f"{val} is not a directory")
-        else:
-            raise ValueError(f"{val} doesn't exist")
 
 
 # TODO: filtering logic goes here...
@@ -131,7 +92,7 @@ def generate_data_filename_patterns(
     config: CruiseConfig,
 ) -> dict[str, re.Pattern]:
     out = dict()
-    for k, v in config.settings:
+    for k, v in config.namings:
         if k.endswith("_suffix"):
             if v.endswith("csv"):
                 pattern = rf".*_{v}"
@@ -156,8 +117,6 @@ def box_contains(
 __all__ = [
     "parse_cruises",
     "generate_data_filename_patterns",
-    "ZARRKeys",
-    "CruiseConfig",
     "box_contains",
     "filter_cruise_table",
 ]

@@ -1,31 +1,13 @@
-from pydantic import BaseModel
+from .core import SchoolBoxesOrigin, FilterConfig
+
 import polars as pl
 import xarray as xr
 
 from typing import Union, Sequence, Optional, TypeVar
 from pathlib import Path
-from enum import Enum
+
 import collections.abc
 import abc
-
-
-class SchoolBoxesOrigin(Enum):
-    NOT_AVAILABLE = 1
-    CSV = 2
-    CONTOUR_SEARCH = 3
-
-
-class _ModeFilterConfig(BaseModel):
-    names: Optional[list[str, ...]] = None
-    years: Optional[list[int, ...]] = None
-    with_annotations_only: Optional[bool] = False
-    with_bottom_only: Optional[bool] = False
-
-
-class FilterConfig(BaseModel):
-    frequencies: list[int, ...]
-    categories: list[int, ...]
-    mode_filters: dict[str, _ModeFilterConfig]
 
 
 class ICruise(metaclass=abc.ABCMeta):
@@ -270,4 +252,4 @@ class ICruiseList(
         raise NotImplementedError
 
 
-__all__ = ["ICruise", "ICruiseList", "SchoolBoxesOrigin", "FilterConfig"]
+__all__ = ["ICruise", "ICruiseList"]

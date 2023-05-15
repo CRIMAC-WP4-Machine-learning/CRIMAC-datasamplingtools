@@ -1,10 +1,10 @@
 from ..utils.cruise import (
     parse_cruises,
     generate_data_filename_patterns,
-    box_contains,
     filter_cruise_table,
 )
 from ..core import ICruise, ICruiseList, SchoolBoxesOrigin, FilterConfig, CruiseConfig
+from ..utils.misc import box_contains
 
 import polars as pl
 import xarray as xr

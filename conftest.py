@@ -17,7 +17,7 @@ def pytest_sessionstart(session):
     base_path = pytest.resources_root / "data/test_trip/ACOUSTIC"
     pytest.data_paths = {
         "default": base_path / "GRIDDED",
-        "without_annotation": base_path / "GRIDDED",
+        "without_annotation": base_path / "GRIDDED_WITHOUT_ANNOTATION",
         "without_bottom": base_path / "GRIDDED_WITHOUT_BOTTOM",
         "without_bottom_and_annotation": base_path
         / "GRIDDED_WITHOUT_BOTTOM_AND_ANNOTATION",

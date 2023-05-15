@@ -7,12 +7,13 @@ from itertools import product
 from pathlib import Path
 
 
+# =================================== CruiseConfig =================================== #
 # Valid parameters
 valid_paths = [pytest.data_paths["default"], str(pytest.data_paths["default"])]
 require_annotations_flags = [True, False]
 require_bottom_flags = [True, False]
 valid_names = ["valid_name", "", None, 3242]
-valid_years = [100, 1, 20349, "2019", 2019, None]
+valid_years = [100, 0, 20349, "2019", 2019, None]
 valid_params = [
     *product(
         valid_paths,
@@ -49,6 +50,7 @@ invalid_name_year_params = [
         invalid_years,
     )
 ]
+# =================================== CruiseConfig =================================== #
 
 
 class TestCruiseConfig:
@@ -96,3 +98,16 @@ class TestCruiseConfig:
                 name=name,
                 year=year,
             )
+
+
+# # =================================== FilterConfig =================================== #
+# # Valid parameters
+# valid_frequencies = [[1, 2, 3], [0], [-1], [38000, 120000], [1.2, 38000.0]]
+# valid_categories = [[1, 2, 3], [0], [-1]]
+#
+# # =================================== FilterConfig =================================== #
+#
+#
+# class TestFilterConfig:
+#     def test_one(self) -> None:
+#         pass

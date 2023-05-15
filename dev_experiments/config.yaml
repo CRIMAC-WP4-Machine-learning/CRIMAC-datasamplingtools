@@ -16,37 +16,55 @@ filter:
   # Notes: selects cruises that have AT LEAST ONE of the mentioned categories.
   categories: [24]
 
-  # Mode filters; this filter is available under "train" key; see examples to learn more
-  train:
-    # Type: list[str, ...]
-    # Notes: if specified, all cruises with None for `name` are excluded
-    names: null
+  # Partition (split) filters; this filter is available under "train" key; see examples to learn more
+  partition_filters:
+    train:
+      # Type: list[str, ...]
+      # Notes: if specified, all cruises with None for `name` are excluded
+      names: null
 
-    # Type: list[int, ...]
-    # Notes: if specified, all cruises with None for `year` are excluded
-    years: null
+      # Type: list[int, ...]
+      # Notes: if specified, all cruises with None for `year` are excluded
+      years: null
 
-    # Type: bool
-    # Notes: ...
-    with_annotations_only: True
+      # Type: bool
+      # Notes: ...
+      with_annotations_only: True
 
-    # Type: bool
-    # Notes: ...
-    with_bottom_only: False
+      # Type: bool
+      # Notes: ...
+      with_bottom_only: False
 
-  mode_name:
-    # Type: list[str, ...]
-    # Notes: if specified, all cruises with None for `name` are excluded
-    names: null
+    partition_name_1:
+      # Type: list[str, ...]
+      # Notes: if specified, all cruises with None for `name` are excluded
+      names: ["name1", "name2", "name3"]
 
-    # Type: list[int, ...]
-    # Notes: if specified, all cruises with None for `year` are excluded
-    years: null
+      # Type: list[int, ...]
+      # Notes: if specified, all cruises with None for `year` are excluded
+      years: null
 
-    # Type: bool
-    # Notes: ...
-    with_annotations_only: True
+      # Type: bool
+      # Notes: ...
+      with_annotations_only: True
 
-    # Type: bool
-    # Notes: ...
-    with_bottom_only: False
+      # Type: bool
+      # Notes: ...
+      with_bottom_only: True
+
+    partition_name_2:
+      # Type: list[str, ...]
+      # Notes: if specified, all cruises with None for `name` are excluded
+      names: null
+
+      # Type: list[int, ...]
+      # Notes: if specified, all cruises with None for `year` are excluded
+      years: [2023, 2022, 2021, 2020]
+
+      # Type: bool
+      # Notes: ...
+      with_annotations_only: False
+
+      # Type: bool
+      # Notes: ...
+      with_bottom_only: False

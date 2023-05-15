@@ -11,9 +11,8 @@ import re
 def filter_cruise_table(
     cruise_table: pl.DataFrame, filter_conf: FilterConfig, mode: str
 ) -> pl.DataFrame:
-    mode_filter = filter_conf.mode_filters[mode]
+    mode_filter = filter_conf.partition_filters[mode]
     for col, val in filter_conf:
-
         pass
     pass
 

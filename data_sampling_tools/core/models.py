@@ -14,7 +14,7 @@ class SchoolBoxesOrigin(Enum):
     CONTOUR_SEARCH = 3
 
 
-class ModeFilterConfig(BaseModel):
+class PartitionFilterConfig(BaseModel):
     names: Optional[list[str, ...]] = None
     years: Optional[list[int, ...]] = None
     with_annotations_only: Optional[bool] = False
@@ -24,7 +24,7 @@ class ModeFilterConfig(BaseModel):
 class FilterConfig(BaseModel):
     frequencies: list[int, ...]
     categories: list[int, ...]
-    mode_filters: dict[str, ModeFilterConfig]
+    partition_filters: dict[str, PartitionFilterConfig]
 
 
 class ZARRKeys(BaseModel):
@@ -63,4 +63,4 @@ class CruiseConfig(BaseModel):
             raise ValueError(f"{val} doesn't exist")
 
 
-__all__ = ["SchoolBoxesOrigin", "ModeFilterConfig", "FilterConfig", "CruiseConfig"]
+__all__ = ["SchoolBoxesOrigin", "PartitionFilterConfig", "FilterConfig", "CruiseConfig"]

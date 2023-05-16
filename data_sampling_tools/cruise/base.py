@@ -110,6 +110,7 @@ class CruiseBase(ICruise):
                 )
                 return xr.Dataset()
 
+    # TODO: fix to work with correct annotations and test; not recommended for use
     def _find_school_boxes(
         self,
     ) -> dict[int, list[tuple[int, int, int, int], ...]]:
@@ -371,10 +372,12 @@ class CruiseListBase(ICruiseList):
     def frequencies(self) -> tuple[int, ...]:
         return self._frequencies
 
-    def from_filter(self, filter_conf: FilterConfig, mode: str) -> Self:
+    def from_filter(self, filter_conf: FilterConfig, partition_name: str) -> Self:
         new_cruise_list = CruiseListBase(cruises=self._cruises)
         new_cruise_list._table = filter_cruise_table(
-            cruise_table=new_cruise_list.table, filter_conf=filter_conf, mode=mode
+            cruise_table=new_cruise_list.table,
+            filter_conf=filter_conf,
+            partition_name=partition_name,
         )
         return new_cruise_list
 

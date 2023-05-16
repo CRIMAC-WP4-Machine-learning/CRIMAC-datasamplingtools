@@ -9,12 +9,21 @@ import re
 
 # TODO: filtering logic goes here...
 def filter_cruise_table(
-    cruise_table: pl.DataFrame, filter_conf: FilterConfig, mode: str
+    cruise_table: pl.DataFrame, filter_conf: FilterConfig, partition_name: str
 ) -> pl.DataFrame:
-    mode_filter = filter_conf.partition_filters[mode]
     for col, val in filter_conf:
-        pass
-    pass
+        if isinstance(val, dict):
+            continue
+        if len(val) == 0:
+            continue
+        # filtering logic
+        cruise_table = cruise_table.filter(
+            filter_conf.__getattribute__(col + "_predicate")(val, col)
+        )
+    for col, val in filter_conf.partition_filters[partition_name]:
+        if isinstance(val, list) and len(val) == 0:
+            continue
+    return cruise_table
 
 
 def parse_cruises(

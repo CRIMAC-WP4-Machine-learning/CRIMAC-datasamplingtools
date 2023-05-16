@@ -105,10 +105,10 @@ def invalid_cruise_config(request) -> CruiseConfig:
     return conf
 
 
-@pytest.fixture
-def valid_cruise_base() -> CruiseBase:
+@pytest.fixture(params=[valid_parameters[0]])
+def valid_cruise_base(request) -> CruiseBase:
     # takes the first combination of the valid_parameters list from the outer scope
-    path, require_annotations, require_bottom, name, year = valid_parameters[0]
+    path, require_annotations, require_bottom, name, year = request.param
     return CruiseBase(
         conf=CruiseConfig(
             path=path,

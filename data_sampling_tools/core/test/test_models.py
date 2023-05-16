@@ -1,4 +1,4 @@
-from ..models import CruiseConfig
+from ..models import CruiseConfig, FilterConfig, PartitionFilterConfig
 
 from pydantic import ValidationError
 import pytest
@@ -8,6 +8,8 @@ from pathlib import Path
 
 
 # =================================== CruiseConfig =================================== #
+# TODO: refine tests; remove redundant cases;
+#  focus on corner cases to check custom validation logic of CruiseConfig model
 # Valid parameters
 valid_paths = [pytest.data_paths["default"], str(pytest.data_paths["default"])]
 require_annotations_flags = [True, False]
@@ -100,14 +102,49 @@ class TestCruiseConfig:
             )
 
 
-# # =================================== FilterConfig =================================== #
-# # Valid parameters
-# valid_frequencies = [[1, 2, 3], [0], [-1], [38000, 120000], [1.2, 38000.0]]
-# valid_categories = [[1, 2, 3], [0], [-1]]
-#
-# # =================================== FilterConfig =================================== #
-#
-#
-# class TestFilterConfig:
-#     def test_one(self) -> None:
-#         pass
+# =================================== FilterConfig =================================== #
+# Valid parameters
+valid_frequencies = [[], [None], None, 120000]
+valid_categories = [[], [None], None, 24]
+valid_names = [[], [None], None, "name1"]
+valid_years = [[], [None], None, 2019]
+
+valid_filter_params = [
+    (f, c, n, y, True, True)
+    for f, c, n, y in zip(valid_frequencies, valid_categories, valid_names, valid_years)
+]
+# =================================== FilterConfig =================================== #
+
+
+# TODO: add filter for invalid values, especially invalid years
+class TestFilterConfig:
+    def test_one(self) -> None:
+        """Totally empty object."""
+        _ = FilterConfig()
+
+    @pytest.mark.parametrize(
+        "frequencies, categories, names, years, with_annotations_only, with_bottom_only",
+        valid_filter_params,
+    )
+    def test_two(
+        self,
+        frequencies,
+        categories,
+        names,
+        years,
+        with_annotations_only,
+        with_bottom_only,
+    ) -> None:
+        """Various corner cases to that trigger custom validators."""
+        _ = FilterConfig(
+            frequencies=frequencies,
+            categories=categories,
+            partition_filters={
+                "partition_name": PartitionFilterConfig(
+                    names=names,
+                    years=years,
+                    with_annotations_only=with_annotations_only,
+                    with_bottom_only=with_bottom_only,
+                )
+            },
+        )

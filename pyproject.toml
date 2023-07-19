@@ -11,8 +11,8 @@ python = ">=3.9,<3.12"
 PyYAML = "^6.0"
 opencv-python = "^4.6.0.66"
 pydantic = "^1.10.6"
-xarray = {extras = ["accel", "io", "parallel"], version = "^2023.4.2"}
-polars = "0.17.11"
+xarray = {extras = ["io", "parallel"], version = "^2023.7.0"}
+polars = "^0.17.11"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"

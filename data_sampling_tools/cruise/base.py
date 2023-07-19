@@ -3,7 +3,14 @@ from ..utils.cruise import (
     generate_data_filename_patterns,
     filter_cruise_table,
 )
-from ..core import ICruise, ICruiseList, SchoolBoxesOrigin, FilterConfig, CruiseConfig
+from ..core import (
+    ICruise,
+    ICruiseList,
+    SchoolBoxesOrigin,
+    FilterConfig,
+    CruiseConfig,
+    PSEUDO_CRUISE_NAMING,
+)
 from ..utils.misc import box_contains
 
 import polars as pl
@@ -241,10 +248,10 @@ class CruiseBase(ICruise):
         except AssertionError:
             raise ValueError("Inconsistent box dimensions")
         new_conf_dict = dict(self._conf)
-        try:
-            new_conf_dict["name"] += f"-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
-        except TypeError:
-            new_conf_dict["name"] = f"unnamed-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
+        new_conf_dict["name"] = PSEUDO_CRUISE_NAMING(
+            new_conf_dict["name"], category, x1, y1, x2, y2
+        )
+        # new_conf_dict["name"] += f"-cat[{category}]-box[{x1},{y1},{x2},{y2}]"
         cruise = self._from_box(conf=CruiseConfig(**new_conf_dict))
         cruise._echogram = cruise._echogram.isel(
             {

@@ -15,50 +15,119 @@ class SchoolBoxesOrigin(Enum):
     CONTOUR_SEARCH = 3
 
 
+CRUISE_TABLE_COLUMNS: dict[str, pl.PolarsDataType] = {
+    "name": pl.Utf8,
+    "year": pl.UInt16,
+    "index": pl.UInt16,
+    "category": pl.UInt16,
+    "frequencies": pl.List(pl.UInt32),
+    "full_path": pl.Utf8,
+    "annotations_available": pl.Boolean,
+    "bottom_available": pl.Boolean,
+}
+FILTER2TABLE_MAP: dict[str, str] = {
+    "names": "name",
+    "years": "year",
+    "indices": "index",
+    "categories": "category",
+    "frequencies": "frequencies",
+    "full_paths": "full_path",
+    "with_annotations_only": "annotations_available",
+    "with_bottom_only": "bottom_available",
+}
+PSEUDO_CRUISE_NAMING = (
+    lambda n, c, x1, y1, x2, y2: f"{n}-cat[{c}]-box[{x1},{y1},{x2},{y2}]"
+)
+# PSEUDO_CRUISE_NAME_PATTERN = r".*-cat\[(-?\d+)\]-box\[(\d+),(\d+),(\d+),(\d+)\]"
+
+
+class PartitionFilterPredicates:
+    names: Callable[[list[int, ...]], bool] = lambda _, ref_names: pl.col(
+        FILTER2TABLE_MAP["names"]
+    ).apply(lambda x: x in ref_names, return_dtype=pl.Boolean)
+    years: Callable[[list[int, ...]], bool] = lambda _, ref_years: pl.col(
+        FILTER2TABLE_MAP["years"]
+    ).apply(lambda x: x in ref_years, return_dtype=pl.Boolean)
+    with_annotations_only: Callable[[bool], bool] = lambda _, flag: pl.col(
+        FILTER2TABLE_MAP["with_annotations_only"]
+    ).apply(lambda x: x is flag if flag is True else True, return_dtype=pl.Boolean)
+    with_bottom_only: Callable[[bool], bool] = lambda _, flag: pl.col(
+        FILTER2TABLE_MAP["with_bottom_only"]
+    ).apply(lambda x: x is flag if flag is True else True, return_dtype=pl.Boolean)
+
+
 class PartitionFilterConfig(BaseModel):
-    names: list[str, ...] = []
-    years: list[int, ...] = []
+    _predicates: PartitionFilterPredicates = PartitionFilterPredicates()
+    names: set[str, ...] = {}
+    years: set[int, ...] = {}
     with_annotations_only: bool = False
     with_bottom_only: bool = False
 
     @validator("names", "years", pre=True)
-    def convert_inputs(cls, val) -> Union[list[str, ...], list[int, ...], list[()]]:
+    def convert_inputs(cls, val: any) -> Union[set[str, ...], set[int, ...], set[()]]:
         if val is None:
-            return []
+            return set()
         if isinstance(val, str) or isinstance(val, int):
-            return [val]
-        if isinstance(val, list):
+            return {val}
+        if isinstance(val, list) or isinstance(val, set):
             if all(v is None for v in val):
-                return []
+                return set()
+            else:
+                return set(val)
         return val
 
     @validator("years")
-    def valid_years(cls, vals: list[int, ...]) -> None:
+    def valid_years(cls, vals: set[int, ...]) -> set[int, ...]:
         for v in vals:
             if v < 0:
                 raise ValueError("Year cannot be negative.")
+        return vals
+
+    @property
+    def predicates(self) -> PartitionFilterPredicates:
+        return self._predicates
+
+    class Config:
+        underscore_attrs_are_private = True
+
+
+class FilterPredicates:
+    frequencies: Callable[[list[int, ...]], bool] = lambda _, ref_frequencies: pl.col(
+        FILTER2TABLE_MAP["frequencies"]
+    ).apply(lambda x: ref_frequencies.issubset(set(x)), return_dtype=pl.Boolean)
+    categories: Callable[[list[int, ...]], bool] = lambda _, ref_categories: pl.col(
+        FILTER2TABLE_MAP["categories"]
+    ).apply(
+        lambda x: x in ref_categories,
+        return_dtype=pl.Boolean,
+    )
 
 
 class FilterConfig(BaseModel):
-    frequencies: list[int, ...] = []
-    frequencies_predicate: Callable[
-        [list[int, ...], str], bool
-    ] = lambda f_list, col: pl.col(col).apply(
-        lambda x: all(v in x for v in f_list), return_dtype=pl.Boolean
-    ).alias("res")
-    categories: list[int, ...] = []
-    partition_filters: dict[str, PartitionFilterConfig] = {}
+    _predicates: FilterPredicates = FilterPredicates()
+    frequencies: set[int, ...] = set()
+    categories: set[int, ...] = set()
+    partition_filters: dict[str, PartitionFilterConfig] = dict()
 
     @validator("frequencies", "categories", pre=True)
-    def convert_inputs(cls, val) -> Union[list[int, ...], list[()]]:
+    def convert_inputs(cls, val) -> Union[set[int, ...], set[()]]:
         if val is None:
-            return []
+            return set()
         if isinstance(val, int):
-            return [val]
-        if isinstance(val, list):
+            return {val}
+        if isinstance(val, list) or isinstance(val, set):
             if all(v is None for v in val):
-                return []
+                return set()
+            else:
+                return set(val)
         return val
+
+    @property
+    def predicates(self) -> FilterPredicates:
+        return self._predicates
+
+    class Config:
+        underscore_attrs_are_private = True
 
 
 class DatasetConfig(BaseModel):
@@ -107,4 +176,7 @@ __all__ = [
     "FilterConfig",
     "CruiseConfig",
     "DatasetConfig",
+    "CRUISE_TABLE_COLUMNS",
+    "FILTER2TABLE_MAP",
+    "PSEUDO_CRUISE_NAMING",
 ]

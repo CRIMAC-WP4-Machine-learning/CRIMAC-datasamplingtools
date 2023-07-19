@@ -1,4 +1,4 @@
-from ..core import ICruise, FilterConfig, CruiseConfig
+from ..core import ICruise, FilterConfig, CruiseConfig, CRUISE_TABLE_COLUMNS
 
 import polars as pl
 
@@ -7,22 +7,27 @@ import math as m
 import re
 
 
-# TODO: filtering logic goes here...
 def filter_cruise_table(
     cruise_table: pl.DataFrame, filter_conf: FilterConfig, partition_name: str
 ) -> pl.DataFrame:
+    # First apply global filters
     for col, val in filter_conf:
+        # Skip partition specific filters (applied later)
         if isinstance(val, dict):
             continue
+        # Empty list indicates that there is no filter to apply
         if len(val) == 0:
             continue
-        # filtering logic
-        cruise_table = cruise_table.filter(
-            filter_conf.__getattribute__(col + "_predicate")(val, col)
-        )
-    for col, val in filter_conf.partition_filters[partition_name]:
-        if isinstance(val, list) and len(val) == 0:
+        predicate = filter_conf.predicates.__getattribute__(col)(val)
+        cruise_table = cruise_table.filter(predicate)
+    # Apply partition specific filters
+    partition_filter_conf = filter_conf.partition_filters[partition_name]
+    for col, val in partition_filter_conf:
+        if isinstance(val, set) and len(val) == 0:
             continue
+        else:
+            predicate = partition_filter_conf.predicates.__getattribute__(col)(val)
+            cruise_table = cruise_table.filter(predicate)
     return cruise_table
 
 
@@ -31,26 +36,22 @@ def parse_cruises(
 ) -> tuple[
     pl.DataFrame, int, tuple[float, ...], int, int, tuple[int, ...], tuple[int, ...]
 ]:
-    df_schema = {
-        "name": pl.Utf8,
-        "year": pl.UInt16,
-        "index": pl.UInt16,
-        "category": pl.UInt16,
-        "frequencies": pl.List(pl.UInt32),
-        "full_path": pl.Utf8,
-    }
-    name_col = list()
-    year_col = list()
-    index_col = list()
-    category_col = list()
-    frequencies_col = list()
-    full_path_col = list()
+    (
+        name_col,
+        year_col,
+        index_col,
+        category_col,
+        frequencies_col,
+        full_path_col,
+        cruise_ping_fractions,
+        frequencies,
+        categories,
+        annotations_available,
+        bottom_available,
+    ) = (list() for _ in range(11))
     total_num_pings = 0
-    cruise_ping_fractions = list()
     min_range_len = m.inf
     max_range_len = -m.inf
-    frequencies = list()
-    categories = list()
     for i, cruise in enumerate(cruises):
         total_num_pings += cruise.num_pings
         cruise_ping_fractions.append(cruise.num_pings)
@@ -58,6 +59,8 @@ def parse_cruises(
         max_range_len = max(max_range_len, cruise.num_ranges)
         frequencies.extend(cruise.frequencies)
         categories.extend(cruise.categories)
+        annotations_available.append(cruise.annotations_available)
+        bottom_available.append(cruise.bottom_available)
         if cruise.annotations_available:
             for category in cruise.categories:
                 name_col.append(cruise.info["name"])
@@ -82,8 +85,10 @@ def parse_cruises(
             category_col,
             frequencies_col,
             full_path_col,
+            annotations_available,
+            bottom_available
         ],
-        schema=df_schema,
+        schema=CRUISE_TABLE_COLUMNS,
     )
     return (
         df,
